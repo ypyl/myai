@@ -1,5 +1,4 @@
 
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -19,7 +18,7 @@ internal sealed class GitCommitCommand : AsyncCommand<GitCommitCommand.Settings>
             AnsiConsole.MarkupLine("[red]Git diff output is empty. Consider stage some files to generate commit message for them.[/]");
             return 1;
         }
-        var userMessage = await PromptFactory.RenderPrompt(Env.UserPrompts.GitCommit, new Dictionary<string, object?> { ["diff_output"] = output });
+        var userMessage = await PromptFactory.RenderPrompt(Env.UserPrompts.GitCommit.Main, new Dictionary<string, object?> { ["diff_output"] = output });
 
         var conversation = Conversation.StartTalkWith(Persona.SeniorSoftwareDeveloper);
 
@@ -40,7 +39,7 @@ internal sealed class GitCommitCommand : AsyncCommand<GitCommitCommand.Settings>
 
             if (!regenerate) break;
 
-            answer = await conversation.Say("I don't like created commite message. Please create a new one.");
+            answer = await conversation.Say(Env.UserPrompts.GitCommit.Regenerate);
         }
 
         gitPlugin.GitCommit(answer);

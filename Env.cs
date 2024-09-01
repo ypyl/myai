@@ -24,9 +24,18 @@ internal static class Env
     {
         public static string SeniorSoftwareDeveloper => _envVars["SYSTEM_PROMPT_SENIOR_SOFTWARE_DEVELOPER"];
     }
+
     public static class UserPrompts
     {
-        public static string GitCommit => _envVars["USER_PROMPT_GIT_COMMIT"];
-        public static string Code => _envVars["USER_PROMP_CODE"];
+        public static class GitCommit
+        {
+            public static string Main => _envVars["USER_PROMPT_GIT_COMMIT"];
+            public static string Regenerate => _envVars["USER_PROMPT_GIT_COMMIT_REGENERATE"];
+        }
+        public static class Code
+        {
+            public static string Main => _envVars["USER_PROMPT_CODE"];
+            public static string Regenerate => _envVars["USER_PROMPT_CODE_REGENERATE"];
+        }
     }
 }

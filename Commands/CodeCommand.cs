@@ -22,7 +22,7 @@ internal sealed class CodeCommand : AsyncCommand<CodeCommand.Settings>
         }
         var fileContent = await new FileIOPlugin().ReadAsync(targetFilePath);
 
-        var userMessage = await PromptFactory.RenderPrompt(Env.UserPrompts.Code, new Dictionary<string, object?> { ["csharp_code"] = fileContent });
+        var userMessage = await PromptFactory.RenderPrompt(Env.UserPrompts.Code.Main, new Dictionary<string, object?> { ["csharp_code"] = fileContent });
 
         var conversation = Conversation.StartTalkWith(Persona.SeniorSoftwareDeveloper);
 
@@ -35,7 +35,7 @@ internal sealed class CodeCommand : AsyncCommand<CodeCommand.Settings>
         {
             while (!answer.StartsWith(Prefix) || !answer.EndsWith(Postfix))
             {
-                answer = await conversation.Say($"You must wrap the code by '{Prefix}' and '{Postfix}' as it will be extracted and saved to the file.");
+                answer = await conversation.Say(string.Format(Env.UserPrompts.Code.Regenerate, Prefix, Postfix));
             }
             var codeOnly = answer[Prefix.Length..^Postfix.Length];
 
