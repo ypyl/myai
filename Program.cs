@@ -8,19 +8,9 @@ app.Configure(config =>
         .WithDescription("Commit staged changes using generated message")
         .WithExample("commit")
         .WithExample("commit", "--debug");
+    config.AddCommand<CodeCommand>("code")
+        .WithDescription("Complete code in opened VSCode file")
+        .WithExample("code")
+        .WithExample("code", "--debug");
 });
 return app.Run(args);
-
-// var processes = Process.GetProcessesByName("Code");
-
-// if(processes.Length == 0)
-// {
-//     Console.WriteLine(processes.Length);
-// }
-// else
-// {
-//     foreach(var process in processes)
-//     {
-//         Console.WriteLine(process.MainWindowTitle);
-//     }
-// }

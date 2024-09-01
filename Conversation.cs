@@ -14,7 +14,8 @@ internal class CustomDelegatingHandler() : DelegatingHandler(new HttpClientHandl
 {
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        request.RequestUri = new Uri(request.RequestUri.ToString().Replace("https://api.openai.com/v1", Env.GorqEndpoint));
+        var url = request.RequestUri?.ToString().Replace("https://api.openai.com/v1", Env.GorqEndpoint) ?? throw new ArgumentNullException(nameof(request));
+        request.RequestUri = new Uri(url);
         return await base.SendAsync(request, cancellationToken);
     }
 }
@@ -22,8 +23,6 @@ internal class CustomDelegatingHandler() : DelegatingHandler(new HttpClientHandl
 internal sealed class Conversation
 {
     private readonly Kernel _kernel;
-    private readonly IChatCompletionService _chatCompletionService;
-
     private readonly ChatHistory _chatHistory;
     private readonly bool _debug;
 

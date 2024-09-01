@@ -27,5 +27,6 @@ internal static class Env
     public static class UserPrompts
     {
         public static string GitCommit => _envVars["USER_PROMPT_GIT_COMMIT"];
+        public static string Code => _envVars["USER_PROMP_CODE"];
     }
 }
