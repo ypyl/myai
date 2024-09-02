@@ -24,25 +24,9 @@ internal sealed class GitCommitCommand : AsyncCommand<GitCommitCommand.Settings>
 
         var answer = await conversation.Say(userMessage);
 
-        var regenerate = true;
-        while (regenerate)
-        {
-            AnsiConsole.Write(new Panel(answer)
-            {
-                Header = new PanelHeader("Commit message")
-            });
+        var finalAnswer = await UITools.ConfirmAnswer(conversation, answer, Env.UserPrompts.GitCommit.Regenerate);
 
-            regenerate = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("Do you like created [green]commit message[/]?")
-                    .AddChoices(["Yes", "No"])) == "No";
-
-            if (!regenerate) break;
-
-            answer = await conversation.Say(Env.UserPrompts.GitCommit.Regenerate);
-        }
-
-        gitPlugin.GitCommit(answer);
+        gitPlugin.GitCommit(finalAnswer);
 
         return 0;
     }

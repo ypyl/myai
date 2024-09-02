@@ -29,12 +29,13 @@ internal static class Env
     {
         public static class GitCommit
         {
-            public static string Main => _envVars["USER_PROMPT_GIT_COMMIT"];
+            public static string Main => _envVars["USER_PROMPT_GIT_COMMIT_MAIN"];
             public static string Regenerate => _envVars["USER_PROMPT_GIT_COMMIT_REGENERATE"];
         }
         public static class Code
         {
-            public static string Main => _envVars["USER_PROMPT_CODE"];
+            public static string Main => _envVars["USER_PROMPT_CODE_MAIN"];
+            public static string TypesFromInstructions => _envVars["USER_PROMPT_CODE_TYPES_FROM_INSTRUCTION"];
             public static string Regenerate => _envVars["USER_PROMPT_CODE_REGENERATE"];
         }
     }

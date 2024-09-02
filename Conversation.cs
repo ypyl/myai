@@ -26,7 +26,7 @@ internal sealed class Conversation
     private readonly ChatHistory _chatHistory;
     private readonly bool _debug;
 
-    private Conversation(Persona persona, bool debug = false)
+    private Conversation(Persona persona)
     {
         var builder = Kernel.CreateBuilder();
         var systemPrompt = persona switch
@@ -48,7 +48,7 @@ internal sealed class Conversation
         }
         _kernel = builder.Build();
         _chatHistory = new ChatHistory(systemPrompt);
-        _debug = debug;
+        _debug = Env.Debug;
         MessageOutputAsync(_chatHistory);
     }
 

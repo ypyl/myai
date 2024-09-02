@@ -64,4 +64,52 @@ internal sealed class CsFileFinderPlugin
             return csFilesDictionary;
         });
     }
+
+    [KernelFunction("find_csproj_files")]
+    [Description("Finds all .csproj files in the specified folder and returns a dictionary with file names (without extension) as keys and full paths as values.")]
+    [return: Description("Dictionary with file names as keys and full paths as values")]
+    public Dictionary<string, string> FindCsprojFiles()
+    {
+        // Validate the input path
+        if (string.IsNullOrWhiteSpace(_workingDir))
+        {
+            AnsiConsole.MarkupLine("[red]Error: Folder path cannot be null or empty.[/]");
+            return [];
+        }
+
+        if (!Directory.Exists(_workingDir))
+        {
+            AnsiConsole.MarkupLine("[red]Error: The specified folder path does not exist: {0}[/]", _workingDir.EscapeMarkup());
+            return [];
+        }
+
+        return AnsiConsole.Status().Start("Searching for .csproj files...", ctx =>
+        {
+            // Dictionary to store the file names and their paths
+            var csprojFilesDictionary = new Dictionary<string, string>();
+
+            // Get all .csproj files in the specified folder (including subdirectories)
+            var csprojFiles = Directory.GetFiles(_workingDir, "*.csproj", SearchOption.AllDirectories)
+                .ToList();
+
+            if (csprojFiles.Count == 0)
+            {
+                AnsiConsole.MarkupLine("[yellow]No .csproj files found in the specified folder.[/]");
+            }
+
+            // Populate the dictionary with file names (without extension) as keys and full paths as values
+            foreach (var file in csprojFiles)
+            {
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
+                csprojFilesDictionary[fileNameWithoutExtension] = file;
+
+                if (_debug)
+                {
+                    AnsiConsole.MarkupLine("[green]Found:[/] {0} -> [blue]{1}[/]", fileNameWithoutExtension.EscapeMarkup(), file.EscapeMarkup());
+                }
+            }
+
+            return csprojFilesDictionary;
+        });
+    }
 }
