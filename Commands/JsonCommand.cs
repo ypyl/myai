@@ -5,53 +5,64 @@ using Serilog.Core;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-internal sealed class GitCommitCommand : AsyncCommand<GitCommitCommand.Settings>
+internal sealed class JsonCommand : AsyncCommand<JsonCommand.Settings>
 {
-    private string PromptMain => _config.GetStringValue("$.commit.main");
-    private string PromptRegenerate => _config.GetStringValue("$.commit.regenerate");
-    private readonly Config _config = new();
+    private string PromptMain => _config.GetStringValue("$.json.main");
+    private string PromptRegenerate => _config.GetStringValue("$.json.regenerate");
+    private readonly Config _config = new ();
 
     public sealed class Settings : CommandSettings
     {
+
     }
 
     public override async Task<int> ExecuteAsync([NotNull] CommandContext context, [NotNull] Settings settings)
     {
         var logger = CreateLogger();
-        var gitPlugin = new GitPlugin(_config.GetStringValue("$.working_dir"), logger);
-        var output = gitPlugin.GitDiff();
-        if (string.IsNullOrWhiteSpace(output))
+        var targetFileName = new ExternalProcessPlugin().VSCodeTargetFileName();
+
+        var allFiles = new FileFinderPlugin(_config.GetStringValue("$.working_dir"), logger).FindJsonFiles();
+        if (!allFiles.TryGetValue(Path.GetFileNameWithoutExtension(targetFileName), out var targetFilePath))
         {
-            AnsiConsole.MarkupLine("[red]Git diff output is empty. Consider stage some files to generate commit message for them.[/]");
+            AnsiConsole.MarkupLine("[red]Not able to find {0} in workding directory.[/]", targetFileName);
             return 1;
         }
-        var userMessage = await new PromptFactory(logger).RenderPrompt(PromptMain, new Dictionary<string, object?> { ["diff_output"] = output });
+        var fileContent = await new FileIOPlugin().ReadAsync(targetFilePath);
+
+        var userMessage = await new PromptFactory(logger).RenderPrompt(PromptMain,
+            new Dictionary<string, object?> { ["json_data"] = fileContent });
 
         var completionService = new CompletionService(_config).CreateChatCompletionService();
 
         var conversation = new Conversation(_config, completionService, logger);
 
         var answer = await conversation.Say(userMessage);
+        const string Prefix = "```json";
+        const string Postfix = "```";
 
         var regenerate = true;
         while (regenerate)
         {
-            AnsiConsole.Write(new Panel(answer)
+            while (!answer.StartsWith(Prefix) || !answer.EndsWith(Postfix))
             {
-                Header = new PanelHeader("Output")
-            });
+                // TODO loop protection
+                answer = await conversation.Say(string.Format(PromptRegenerate, Prefix, Postfix));
+            }
+            var codeOnly = answer[Prefix.Length..^Postfix.Length];
+
+            await new FileIOPlugin().WriteAsync(targetFilePath, codeOnly.TrimStart());
 
             regenerate = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title("Do you like [green]output[/]?")
+                    .Title("Do you like [green]created json[/]?")
                     .AddChoices(["Yes", "No"])) == "No";
 
             if (!regenerate) break;
 
-            answer = await conversation.Say(PromptRegenerate);
-        }
+            var userComment = AnsiConsole.Prompt(new TextPrompt<string>("What is the [red]issue[/] with [green]generated json[/]?"));
 
-        gitPlugin.GitCommit(answer);
+            answer = await conversation.Say(userComment);
+        }
 
         return 0;
     }

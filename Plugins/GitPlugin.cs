@@ -1,10 +1,11 @@
 
 using System.ComponentModel;
 using Microsoft.SemanticKernel;
+using Serilog;
 using Spectre.Console;
 
 [Description("Plugin to work to run git commands.")]
-internal sealed class GitPlugin
+internal sealed class GitPlugin(string workingDir, ILogger logger)
 {
     [KernelFunction("git_diff")]
     [Description("Gets a diff of staged files.")]
@@ -13,7 +14,7 @@ internal sealed class GitPlugin
     {
         return AnsiConsole.Status().Start("Getting git diff...", ctx =>
         {
-            return new ExternalAppPlugin().ExecuteCommand("git", "diff --staged");
+            return new ExternalAppPlugin(workingDir, logger).ExecuteCommand("git", "diff --staged");
         });
     }
 
@@ -23,7 +24,7 @@ internal sealed class GitPlugin
     {
         return AnsiConsole.Status().Start("Committing changes...", ctx =>
         {
-            return new ExternalAppPlugin().ExecuteCommand("git",  $"commit -m \"{message}\"");
+            return new ExternalAppPlugin(workingDir, logger).ExecuteCommand("git",  $"commit -m \"{message}\"");
         });
     }
 }

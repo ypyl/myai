@@ -1,21 +1,12 @@
-using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.SemanticKernel;
-using Spectre.Console;
+using Serilog;
 
 [Description("Plugin to execute external applications.")]
-internal sealed class ExternalAppPlugin
+internal sealed class ExternalAppPlugin(string workingDir, ILogger logger)
 {
-    private readonly bool _debug;
-    private readonly string _workingDir;
-
-    public ExternalAppPlugin()
-    {
-        _debug = Env.Debug;
-        _workingDir = Env.WorkingDir;
-    }
     [KernelFunction("execute_command")]
     [Description("Executes an external command and captures its output.")]
     [return: Description("The output of the executed command.")]
@@ -34,7 +25,7 @@ internal sealed class ExternalAppPlugin
             UseShellExecute = false,
             Arguments = arguments,
             FileName = fileName,
-            WorkingDirectory = _workingDir,
+            WorkingDirectory = workingDir,
         };
 
         process.StartInfo = processStartInfo;
@@ -45,10 +36,7 @@ internal sealed class ExternalAppPlugin
                 if (e.Data != null)
                 {
                     outputBuilder.AppendLine(e.Data);
-                    if (_debug)
-                    {
-                        AnsiConsole.MarkupLine("[green]{0}[/]", e.Data.EscapeMarkup());
-                    }
+                    logger.Verbose(e.Data);
                 }
             }
         );
@@ -58,21 +46,19 @@ internal sealed class ExternalAppPlugin
             {
                 if (e.Data != null)
                 {
-                    if (_debug)
-                    {
-                        AnsiConsole.MarkupLine("[red]{0}[/]", e.Data.EscapeMarkup());
-                    }
+                    logger.Error(e.Data);
                 }
             }
         );
 
-        AnsiConsole.Status().Start($"Executing {fileName}...", ctx =>
-        {
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            process.WaitForExit();
-        });
+        logger.Verbose(nameof(ExecuteCommand));
+        logger.Verbose(fileName);
+        logger.Verbose(arguments);
+
+        process.Start();
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+        process.WaitForExit();
 
         return outputBuilder.ToString();
     }
