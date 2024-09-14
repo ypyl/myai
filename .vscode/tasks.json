@@ -36,7 +36,8 @@
         "--add-source",
         "./nupkg",
         "myai"
-      ]
+      ],
+      "problemMatcher": []
     }
   ]
 }
