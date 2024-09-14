@@ -11,6 +11,9 @@ app.Configure(config =>
     config.AddCommand<CodeCommand>("code")
         .WithDescription("Complete code in opened VSCode file")
         .WithExample("code");
+    config.AddCommand<SnippetCommand>("snippet")
+        .WithDescription("Implement code snippet in opened VSCode file")
+        .WithExample("snippet");
     config.AddCommand<JsonCommand>("json")
         .WithDescription("Complete json in opened VSCode file")
         .WithExample("json");

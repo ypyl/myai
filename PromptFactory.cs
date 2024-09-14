@@ -11,13 +11,8 @@ internal sealed class PromptFactory(ILogger logger)
         return await AnsiConsole.Status().StartAsync("Rendering prompt...", async ctx =>
         {
             var arguments = new KernelArguments(parameters);
-            logger.Verbose(nameof(RenderPrompt));
-            logger.Verbose("template:");
-            logger.Verbose(template);
+            logger.Verbose("Rendering prompt");
             var prompt = await _promptTemplateFactory.Create(new PromptTemplateConfig(template)).RenderAsync(new Kernel(), arguments);
-
-            logger.Verbose("prompt:");
-            logger.Verbose(prompt);
             return prompt;
         });
     }

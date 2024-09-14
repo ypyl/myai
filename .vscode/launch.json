@@ -6,8 +6,8 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/bin/Debug/net8.0/myai.dll", // Adjust according to your project's target framework and path
-            "args": ["code"], // Passing 'code' as a parameter
+            "program": "${workspaceFolder}/bin/Debug/net8.0/myai.dll",
+            "args": ["snippet"],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
             "console": "internalConsole",
