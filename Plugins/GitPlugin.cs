@@ -24,7 +24,7 @@ internal sealed class GitPlugin(string workingDir, ILogger logger)
     {
         return AnsiConsole.Status().Start("Committing changes...", ctx =>
         {
-            return new ExternalAppPlugin(workingDir, logger).ExecuteCommand("git",  $"commit -m \"{message}\"");
+            return new ExternalAppPlugin(workingDir, logger).ExecuteCommand("git", $"commit -m \"{message}\"");
         });
     }
 }
