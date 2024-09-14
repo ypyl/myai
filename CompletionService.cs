@@ -1,7 +1,6 @@
-
-
-using Microsoft.SemanticKernel.ChatCompletion;
+﻿using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+using Spectre.Console;
 
 internal class CustomDelegatingHandler(string endpoint) : DelegatingHandler(new HttpClientHandler())
 {
@@ -20,11 +19,15 @@ internal sealed class CompletionService(Config settings)
         var endpoint = settings.GetStringValue("$.model.endpoint");
         if (endpoint.Contains("groq"))
         {
+            var modelId = settings.GetStringValue("$.model.model_id");
+            AnsiConsole.MarkupLine($"[blue]Model id: {modelId}[/]");
             return new OpenAIChatCompletionService(settings.GetStringValue("$.model.model_id"), settings.GetStringValue("$.model.api_key"), httpClient: new(new CustomDelegatingHandler(endpoint)));
         }
         else
         {
-            return new AzureOpenAIChatCompletionService(settings.GetStringValue("$.model.deployment"), endpoint, apiKey: settings.GetStringValue("$.model.api_key"));
+            var deployment = settings.GetStringValue("$.model.deployment");
+            AnsiConsole.MarkupLine($"[blue]Model/Deployment name: {deployment}[/]");
+            return new AzureOpenAIChatCompletionService(deployment, endpoint, apiKey: settings.GetStringValue("$.model.api_key"));
         }
     }
 }
