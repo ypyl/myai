@@ -8,7 +8,7 @@ internal sealed class FileIOPlugin
     [KernelFunction, Description("Read a file")]
     public async Task<string> ReadAsync([Description("Source file")] string path)
     {
-        AnsiConsole.MarkupLine("[green]Reading content of file:[/] {0}", path);
+        AnsiConsole.MarkupLine("[green]Reading content of file:[/] [navy]{0}[/]", path);
         return await File.ReadAllTextAsync(path);
     }
 

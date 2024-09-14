@@ -14,6 +14,9 @@ app.Configure(config =>
     config.AddCommand<JsonCommand>("json")
         .WithDescription("Complete json in opened VSCode file")
         .WithExample("json");
+    config.AddCommand<ExplainCommand>("explain")
+        .WithDescription("Explain code by adding comments to it in opened VSCode file")
+        .WithExample("explain");
 
     config.SetExceptionHandler((ex, typeResolver) =>
     {

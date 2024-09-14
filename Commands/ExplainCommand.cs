@@ -5,10 +5,10 @@ using Serilog.Core;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-internal sealed class JsonCommand : AsyncCommand<JsonCommand.Settings>
+internal sealed class ExplainCommand : AsyncCommand<ExplainCommand.Settings>
 {
-    private string PromptMain => _config.GetStringValue("$.json.main");
-    private string PromptRegenerate => _config.GetStringValue("$.json.regenerate");
+    private string PromptMain => _config.GetStringValue("$.explain.main");
+    private string PromptRegenerate => _config.GetStringValue("$.explain.regenerate");
     private readonly Config _config = new ();
 
     public sealed class Settings : CommandSettings
@@ -21,7 +21,7 @@ internal sealed class JsonCommand : AsyncCommand<JsonCommand.Settings>
         var logger = CreateLogger();
         var targetFileName = new ExternalProcessPlugin().VSCodeTargetFileName();
 
-        var allFiles = new FileFinderPlugin(_config.GetStringValue("$.working_dir"), logger).FindJsonFiles();
+        var allFiles = new FileFinderPlugin(_config.GetStringValue("$.working_dir"), logger).FindCsFiles();
         if (!allFiles.TryGetValue(Path.GetFileNameWithoutExtension(targetFileName), out var targetFilePath))
         {
             AnsiConsole.MarkupLine("[red]Not able to find {0} in workding directory.[/]", targetFileName);
@@ -29,15 +29,19 @@ internal sealed class JsonCommand : AsyncCommand<JsonCommand.Settings>
         }
         var fileContent = await new FileIOPlugin().ReadAsync(targetFilePath);
 
+        var additional = await ExternalContext(allFiles, fileContent);
+
+        var filtered = additional.Distinct();
+
         var userMessage = await new PromptFactory(logger).RenderPrompt(PromptMain,
-            new Dictionary<string, object?> { ["json_data"] = fileContent });
+            new Dictionary<string, object?> { ["csharp_code"] = fileContent, ["csharp_additional_code"] = string.Join("\n\n", filtered) });
 
         var completionService = new CompletionService(_config).CreateChatCompletionService();
 
         var conversation = new Conversation(_config, completionService, logger);
 
         var answer = await conversation.Say(userMessage);
-        const string Prefix = "```json";
+        const string Prefix = "```csharp";
         const string Postfix = "```";
 
         var regenerate = true;
@@ -54,7 +58,7 @@ internal sealed class JsonCommand : AsyncCommand<JsonCommand.Settings>
 
             regenerate = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title("Do you like [green]created json[/]?")
+                    .Title("Do you like [green]updated code[/]?")
                     .AddChoices(["Yes", "No"])) == "No";
 
             if (!regenerate) break;
@@ -65,6 +69,19 @@ internal sealed class JsonCommand : AsyncCommand<JsonCommand.Settings>
         }
 
         return 0;
+    }
+
+    private async Task<List<string>> ExternalContext(Dictionary<string, string> allFiles, string targetFile)
+    {
+        var externalTypes = new CsNonStandardTypeExtractorPlugin().ExtractNonStandardTypes(targetFile);
+        var result = new List<string>();
+        foreach (var path in allFiles.Where(x => externalTypes.Contains(x.Key)).Select(x => x.Value))
+        {
+            var content = await new FileIOPlugin().ReadAsync(path);
+            AnsiConsole.MarkupLine("[green]External context[/]: [navy]{0}[/]", path);
+            result.Add(content);
+        }
+        return result;
     }
 
     private ILogger CreateLogger()

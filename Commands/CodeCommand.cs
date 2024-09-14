@@ -67,7 +67,7 @@ internal sealed class CodeCommand : AsyncCommand<CodeCommand.Settings>
 
             if (!regenerate) break;
 
-            var userComment = AnsiConsole.Prompt(new TextPrompt<string>("What is the [red]issue[/] with [green]generated code[/]?"));
+            var userComment = AnsiConsole.Prompt(new TextPrompt<string>("[red]What is the issue with generated code?[/]"));
 
             answer = await conversation.Say(userComment);
         }
