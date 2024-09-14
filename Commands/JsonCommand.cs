@@ -5,11 +5,10 @@ using Serilog.Core;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-internal sealed class JsonCommand : AsyncCommand<JsonCommand.Settings>
+internal sealed class JsonCommand : BaseCommand<JsonCommand.Settings>
 {
     private string PromptMain => _config.GetStringValue("$.json.main");
     private string PromptRegenerate => _config.GetStringValue("$.json.regenerate");
-    private readonly Config _config = new ();
 
     public sealed class Settings : CommandSettings
     {
@@ -18,10 +17,9 @@ internal sealed class JsonCommand : AsyncCommand<JsonCommand.Settings>
 
     public override async Task<int> ExecuteAsync([NotNull] CommandContext context, [NotNull] Settings settings)
     {
-        var logger = CreateLogger();
         var targetFileName = new ExternalProcessPlugin().VSCodeTargetFileName();
 
-        var allFiles = new FileFinderPlugin(_config.GetStringValue("$.working_dir"), logger).FindJsonFiles();
+        var allFiles = new FileFinderPlugin(_config.GetStringValue("$.working_dir"), Logger).FindJsonFiles();
         if (!allFiles.TryGetValue(Path.GetFileNameWithoutExtension(targetFileName), out var targetFilePath))
         {
             AnsiConsole.MarkupLine("[red]Not able to find {0} in workding directory.[/]", targetFileName);
@@ -29,12 +27,12 @@ internal sealed class JsonCommand : AsyncCommand<JsonCommand.Settings>
         }
         var fileContent = await new FileIOPlugin().ReadAsync(targetFilePath);
 
-        var userMessage = await new PromptFactory(logger).RenderPrompt(PromptMain,
+        var userMessage = await new PromptFactory(Logger).RenderPrompt(PromptMain,
             new Dictionary<string, object?> { ["json_data"] = fileContent });
 
         var completionService = new CompletionService(_config).CreateChatCompletionService();
 
-        var conversation = new Conversation(_config, completionService, logger);
+        var conversation = new Conversation(_config, completionService, Logger);
 
         var answer = await conversation.Say(userMessage);
         const string Prefix = "```json";
@@ -65,24 +63,5 @@ internal sealed class JsonCommand : AsyncCommand<JsonCommand.Settings>
         }
 
         return 0;
-    }
-
-    private ILogger CreateLogger()
-    {
-        var debug = _config.GetBoolValue("$.debug");
-        var logDir = _config.GetStringValue("$.log_dir");
-        if (debug && !string.IsNullOrEmpty(logDir) && Directory.Exists(logDir))
-        {
-            // Generate a unique filename using a timestamp
-            var logFileName = $"log_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
-            var logFilePath = Path.Combine(logDir, logFileName);
-
-            // Initialize the logger with the constructed file path
-            return new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .WriteTo.File(logFilePath, retainedFileCountLimit: 5)
-                .CreateLogger();
-        }
-        return Logger.None;
     }
 }

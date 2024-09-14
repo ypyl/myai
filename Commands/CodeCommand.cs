@@ -1,16 +1,14 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Serilog;
-using Serilog.Core;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-internal sealed class CodeCommand : AsyncCommand<CodeCommand.Settings>
+internal sealed class CodeCommand : BaseCommand<CodeCommand.Settings>
 {
     private string PromptMain => _config.GetStringValue("$.code.main");
     private string PromptTypesFromInstructions => _config.GetStringValue("$.code.types_from_code");
     private string PromptRegenerate => _config.GetStringValue("$.code.regenerate");
-    private readonly Config _config = new ();
 
     public sealed class Settings : CommandSettings
     {
@@ -19,10 +17,9 @@ internal sealed class CodeCommand : AsyncCommand<CodeCommand.Settings>
 
     public override async Task<int> ExecuteAsync([NotNull] CommandContext context, [NotNull] Settings settings)
     {
-        var logger = CreateLogger();
         var targetFileName = new ExternalProcessPlugin().VSCodeTargetFileName();
 
-        var allFiles = new FileFinderPlugin(_config.GetStringValue("$.working_dir"), logger).FindCsFiles();
+        var allFiles = new FileFinderPlugin(_config.GetStringValue("$.working_dir"), Logger).FindCsFiles();
         if (!allFiles.TryGetValue(Path.GetFileNameWithoutExtension(targetFileName), out var targetFilePath))
         {
             AnsiConsole.MarkupLine("[red]Not able to find {0} in workding directory.[/]", targetFileName);
@@ -30,19 +27,19 @@ internal sealed class CodeCommand : AsyncCommand<CodeCommand.Settings>
         }
         var fileContent = await new FileIOPlugin().ReadAsync(targetFilePath);
 
-        var additionalFromInstruction = await ExternalTypesFromInstructionContext(allFiles, fileContent, logger);
+        var additionalFromInstruction = await ExternalTypesFromInstructionContext(allFiles, fileContent, Logger);
 
         var additional = await ExternalContext(allFiles, fileContent);
 
         List<string> additionalFileContents = [.. additionalFromInstruction, .. additional];
         var filtered = additionalFileContents.Distinct();
 
-        var userMessage = await new PromptFactory(logger).RenderPrompt(PromptMain,
+        var userMessage = await new PromptFactory(Logger).RenderPrompt(PromptMain,
             new Dictionary<string, object?> { ["csharp_code"] = fileContent, ["csharp_additional_code"] = string.Join("\n\n", filtered) });
 
         var completionService = new CompletionService(_config).CreateChatCompletionService();
 
-        var conversation = new Conversation(_config, completionService, logger);
+        var conversation = new Conversation(_config, completionService, Logger);
 
         var answer = await conversation.Say(userMessage);
         const string Prefix = "```csharp";
@@ -109,22 +106,4 @@ internal sealed class CodeCommand : AsyncCommand<CodeCommand.Settings>
         return result;
     }
 
-    private ILogger CreateLogger()
-    {
-        var debug = _config.GetBoolValue("$.debug");
-        var logDir = _config.GetStringValue("$.log_dir");
-        if (debug && !string.IsNullOrEmpty(logDir) && Directory.Exists(logDir))
-        {
-            // Generate a unique filename using a timestamp
-            var logFileName = $"log_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
-            var logFilePath = Path.Combine(logDir, logFileName);
-
-            // Initialize the logger with the constructed file path
-            return new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .WriteTo.File(logFilePath, retainedFileCountLimit: 5)
-                .CreateLogger();
-        }
-        return Logger.None;
-    }
 }
