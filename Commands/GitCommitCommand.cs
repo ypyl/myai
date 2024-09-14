@@ -41,7 +41,7 @@ internal sealed class GitCommitCommand : BaseCommand<GitCommitCommand.Settings>
 
             regenerate = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title("Do you like [green]output[/]?")
+                    .Title("[green]Do you like output?[/]")
                     .AddChoices(["Yes", "No"])) == "No";
 
             if (!regenerate) break;

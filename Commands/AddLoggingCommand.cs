@@ -1,14 +1,12 @@
 
 using System.Diagnostics.CodeAnalysis;
-using Serilog;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-internal sealed class CodeCommand : BaseCommand<CodeCommand.Settings>
+internal sealed class AddLoggingCommand : BaseCommand<AddLoggingCommand.Settings>
 {
-    private string PromptMain => _config.GetStringValue("$.code.main");
-    private string PromptTypesFromInstructions => _config.GetStringValue("$.code.types_from_code");
-    private string PromptRegenerate => _config.GetStringValue("$.code.regenerate");
+    private string PromptMain => _config.GetStringValue("$.logging.main");
+    private string PromptRegenerate => _config.GetStringValue("$.logging.regenerate");
 
     public sealed class Settings : CommandSettings
     {
@@ -27,12 +25,9 @@ internal sealed class CodeCommand : BaseCommand<CodeCommand.Settings>
         }
         var fileContent = await new FileIOPlugin().ReadAsync(targetFilePath);
 
-        var additionalFromInstruction = await ExternalTypesFromInstructionContext(allFiles, fileContent, Logger);
-
         var additional = await ExternalContext(allFiles, fileContent);
 
-        List<string> additionalFileContents = [.. additionalFromInstruction, .. additional];
-        var filtered = additionalFileContents.Distinct();
+        var filtered = additional.Distinct();
 
         var userMessage = await new PromptFactory(Logger).RenderPrompt(PromptMain,
             new Dictionary<string, object?> { ["csharp_code"] = fileContent, ["csharp_additional_code"] = string.Join("\n\n", filtered) });
@@ -72,27 +67,6 @@ internal sealed class CodeCommand : BaseCommand<CodeCommand.Settings>
         return 0;
     }
 
-    private async Task<List<string>> ExternalTypesFromInstructionContext(Dictionary<string, string> allFiles, string targetFileContent, ILogger logger)
-    {
-        var completionService = new CompletionService(_config).CreateChatCompletionService();
-
-        var conversation = new Conversation(_config, completionService, logger);
-
-        var userMessage = await new PromptFactory(logger).RenderPrompt(PromptTypesFromInstructions,
-            new Dictionary<string, object?> { ["csharp_code"] = targetFileContent });
-
-        var answer = await conversation.Say(userMessage);
-        var typesFromInstructions = answer.Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries);
-        var result = new List<string>();
-        foreach (var path in allFiles.Where(x => typesFromInstructions.Contains(x.Key)).Select(x => x.Value))
-        {
-            var content = await new FileIOPlugin().ReadAsync(path);
-            AnsiConsole.MarkupLine("[green]External context[/]: [navy]{0}[/]", path);
-            result.Add(content);
-        }
-        return result;
-    }
-
     private async Task<List<string>> ExternalContext(Dictionary<string, string> allFiles, string targetFile)
     {
         var externalTypes = new CsNonStandardTypeExtractorPlugin().ExtractNonStandardTypes(targetFile);
@@ -105,5 +79,4 @@ internal sealed class CodeCommand : BaseCommand<CodeCommand.Settings>
         }
         return result;
     }
-
 }

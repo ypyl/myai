@@ -52,12 +52,12 @@ internal sealed class JsonCommand : BaseCommand<JsonCommand.Settings>
 
             regenerate = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title("Do you like [green]created json[/]?")
+                    .Title("[green]Do you like generated json?[/]")
                     .AddChoices(["Yes", "No"])) == "No";
 
             if (!regenerate) break;
 
-            var userComment = AnsiConsole.Prompt(new TextPrompt<string>("[red]What is the issue with generated code?[/]"));
+            var userComment = AnsiConsole.Prompt(new TextPrompt<string>("[red]What is the issue with generated json?[/]"));
 
             answer = await conversation.Say(userComment);
         }

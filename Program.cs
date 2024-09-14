@@ -17,6 +17,9 @@ app.Configure(config =>
     config.AddCommand<ExplainCommand>("explain")
         .WithDescription("Explain code by adding comments to it in opened VSCode file")
         .WithExample("explain");
+    config.AddCommand<ExplainCommand>("logging")
+        .WithDescription("Add logging to code by using ILogger to it in opened VSCode file")
+        .WithExample("logging");
 
     config.SetExceptionHandler((ex, typeResolver) =>
     {

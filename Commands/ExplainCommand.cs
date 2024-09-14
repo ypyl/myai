@@ -56,7 +56,7 @@ internal sealed class ExplainCommand : BaseCommand<ExplainCommand.Settings>
 
             regenerate = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title("Do you like [green]updated code[/]?")
+                    .Title("[green]Do you like updated code?[/]")
                     .AddChoices(["Yes", "No"])) == "No";
 
             if (!regenerate) break;
