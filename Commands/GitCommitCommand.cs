@@ -1,14 +1,11 @@
 
 using System.Diagnostics.CodeAnalysis;
-using Serilog;
-using Serilog.Core;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
 internal sealed class GitCommitCommand : BaseCommand<GitCommitCommand.Settings>
 {
     private string PromptMain => _config.GetStringValue("$.commit.main");
-    private string PromptRegenerate => _config.GetStringValue("$.commit.regenerate");
 
     public sealed class Settings : CommandSettings
     {
@@ -46,7 +43,9 @@ internal sealed class GitCommitCommand : BaseCommand<GitCommitCommand.Settings>
 
             if (!regenerate) break;
 
-            answer = await conversation.Say(PromptRegenerate);
+            var userComment = AnsiConsole.Prompt(new TextPrompt<string>("[red]What is the issue with output?[/]"));
+
+            answer = await conversation.Say(userComment);
         }
 
         gitPlugin.GitCommit(answer);
