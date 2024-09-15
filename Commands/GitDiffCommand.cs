@@ -1,33 +1,36 @@
-
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using Spectre.Console;
 using Spectre.Console.Cli;
-
-internal sealed class GitCommitCommand : BaseCommand<GitCommitCommand.Settings>
+using TextCopy;
+internal sealed class GitDiffCommand : BaseCommand<GitDiffCommand.Settings>
 {
-    private string PromptMain => _config.GetStringValue("$.commit.main");
-
+    private string PromptMain => _config.GetStringValue("$.diff.main");
     public sealed class Settings : CommandSettings
     {
+        [CommandArgument(0, "[targetBranch]")]
+        public string? TargetBranch { get; set; }
     }
-
     public override async Task<int> ExecuteAsync([NotNull] CommandContext context, [NotNull] Settings settings)
     {
         var gitPlugin = new GitPlugin(_config.GetStringValue("$.working_dir"), Logger);
-        var output = gitPlugin.GitDiffStaged();
-        if (string.IsNullOrWhiteSpace(output))
+        var currentBranch = gitPlugin.GetCurrentBranch();
+        if (string.IsNullOrWhiteSpace(currentBranch))
         {
-            AnsiConsole.MarkupLine("[red]Git diff output is empty. Consider stage some files to generate commit message for them.[/]");
+            AnsiConsole.MarkupLine("[yellow]Warning: Current branch is empty. Please check your git repository.[/]");
             return 1;
         }
-        var userMessage = await new PromptFactory(Logger).RenderPrompt(PromptMain, new Dictionary<string, object?> { ["diff_output"] = output });
 
+        if (settings.TargetBranch == null)
+        {
+            AnsiConsole.MarkupLine("[red]Warning: Target branch is not specified.[/]");
+            return 2;
+        }
+
+        var diff = gitPlugin.GitDiffMergeBase(currentBranch, settings.TargetBranch);
+        var userMessage = await new PromptFactory(Logger).RenderPrompt(PromptMain, new Dictionary<string, object?> { ["diff_output"] = diff });
         var completionService = new CompletionService(_config).CreateChatCompletionService();
-
         var conversation = new Conversation(_config, completionService, Logger);
-
         var answer = await conversation.Say(userMessage);
-
         var regenerate = true;
         while (regenerate)
         {
@@ -35,21 +38,15 @@ internal sealed class GitCommitCommand : BaseCommand<GitCommitCommand.Settings>
             {
                 Header = new PanelHeader("Output")
             });
-
             regenerate = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("[green]Do you like output?[/]")
                     .AddChoices(["Yes", "No"])) == "No";
-
             if (!regenerate) break;
-
             var userComment = AnsiConsole.Prompt(new TextPrompt<string>("[red]What is the issue with output?[/]"));
-
             answer = await conversation.Say(userComment);
         }
-
-        gitPlugin.GitCommit(answer);
-
+        await ClipboardService.SetTextAsync(answer);
         return 0;
     }
 }
