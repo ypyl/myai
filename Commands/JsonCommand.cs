@@ -17,7 +17,7 @@ internal sealed class JsonCommand : BaseCommand<JsonCommand.Settings>
 
     public override async Task<int> ExecuteAsync([NotNull] CommandContext context, [NotNull] Settings settings)
     {
-        var targetFileName = new ExternalProcessPlugin().VSCodeTargetFileName();
+        var targetFileName = ExternalProcessPlugin.WindowTargetFileName();
 
         var allFiles = new FileFinderPlugin(_config.GetStringValue("$.working_dir"), Logger).FindJsonFiles();
         if (!allFiles.TryGetValue(Path.GetFileNameWithoutExtension(targetFileName), out var targetFilePath))

@@ -15,7 +15,7 @@ internal sealed class AddLoggingCommand : BaseCommand<AddLoggingCommand.Settings
 
     public override async Task<int> ExecuteAsync([NotNull] CommandContext context, [NotNull] Settings settings)
     {
-        var targetFileName = new ExternalProcessPlugin().VSCodeTargetFileName();
+        var targetFileName = ExternalProcessPlugin.WindowTargetFileName();
 
         var allFiles = new FileFinderPlugin(_config.GetStringValue("$.working_dir"), Logger).FindCsFiles();
         if (!allFiles.TryGetValue(Path.GetFileNameWithoutExtension(targetFileName), out var targetFilePath))
@@ -65,18 +65,5 @@ internal sealed class AddLoggingCommand : BaseCommand<AddLoggingCommand.Settings
         }
 
         return 0;
-    }
-
-    private async Task<List<string>> ExternalContext(Dictionary<string, string> allFiles, string targetFile)
-    {
-        var externalTypes = new CsNonStandardTypeExtractorPlugin().ExtractNonStandardTypes(targetFile);
-        var result = new List<string>();
-        foreach (var path in allFiles.Where(x => externalTypes.Contains(x.Key)).Select(x => x.Value))
-        {
-            var content = await new FileIOPlugin().ReadAsync(path);
-            AnsiConsole.MarkupLine("[green]External context[/]: [navy]{0}[/]", path);
-            result.Add(content);
-        }
-        return result;
     }
 }

@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -6,14 +6,16 @@ using Microsoft.SemanticKernel;
 using Spectre.Console;
 
 [Description("Plugin to interact with external processes.")]
-internal sealed class ExternalProcessPlugin
+internal sealed class ExternalProcessPlugin(string processName, int processId = 0)
 {
-    [KernelFunction("vscode_target_file")]
-    [Description("Gets the file name currently open in the VSCode window.")]
-    [return: Description("File name currently open in VSCode or an empty string if not found.")]
-    public string VSCodeTargetFileName()
+    [KernelFunction("window_target_file_name")]
+    [Description("Gets the name of file name.")]
+    [return: Description("File name currently open or an empty string if not found.")]
+    public string WindowTargetFileName()
     {
-        var mainWindowTitle = GetWindowTitle("Code");
+        var tracingString = processId > 0 ? $"using processId: {processId}" : $"using processName: {processName}";
+        AnsiConsole.MarkupLine($"[blue]Tracing: {tracingString}[/]");
+        var mainWindowTitle = processId > 0 ? GetWindowTitleById(processId) : GetWindowTitleByName(processName);
         var splittedTitle = mainWindowTitle.Split('-');
 
         if (splittedTitle.Length >= 2)
@@ -23,14 +25,11 @@ internal sealed class ExternalProcessPlugin
             return fileName;
         }
 
-        AnsiConsole.MarkupLine("[red]Not able to extract file name from VSCode process title.[/]");
+        AnsiConsole.MarkupLine("[red]Not able to extract file name from [0] process title.[/]", processName);
         return string.Empty;
     }
 
-    [KernelFunction("get_window_title")]
-    [Description("Gets the window title of the specified process.")]
-    [return: Description("Window title of the specified process or an empty string if not found.")]
-    public string GetWindowTitle(string processName)
+    public string GetWindowTitleByName(string processName)
     {
         var processes = Process.GetProcessesByName(processName)
             .Where(x => !string.IsNullOrWhiteSpace(x.MainWindowTitle))
@@ -49,6 +48,23 @@ internal sealed class ExternalProcessPlugin
         }
 
         var process = processes.First();
+        string windowTitle = process.MainWindowTitle;
+
+        AnsiConsole.MarkupLine("[green]Process found with title:[/] {0}", windowTitle.EscapeMarkup());
+
+        return windowTitle;
+    }
+
+    public string GetWindowTitleById(int processId)
+    {
+        var process = Process.GetProcessById(processId);
+
+        if (process is null)
+        {
+            AnsiConsole.MarkupLine("[red]Not able to find any process with the id:[/] {0}", processId);
+            return string.Empty;
+        }
+
         string windowTitle = process.MainWindowTitle;
 
         AnsiConsole.MarkupLine("[green]Process found with title:[/] {0}", windowTitle.EscapeMarkup());
@@ -78,25 +94,6 @@ internal sealed class ExternalProcessPlugin
 
         AnsiConsole.MarkupLine("[red]Unable to retrieve the title of the focused window.[/]");
         return string.Empty;
-    }
-
-    [KernelFunction("get_window_title_by_id")]
-    [Description("Gets the title of a process by process ID.")]
-    [return: Description("Title of the process with the specified ID, or an empty string if not found.")]
-    public string GetWindowTitleById(int processId)
-    {
-        var process = Process.GetProcesses().FirstOrDefault(p => p.Id == processId);
-        if (process == null)
-        {
-            AnsiConsole.MarkupLine("[red]No process found with the ID:[/] {0}", processId);
-            return string.Empty;
-        }
-
-        string windowTitle = process.MainWindowTitle;
-
-        AnsiConsole.MarkupLine("[green]Process found with title:[/] {0}", windowTitle.EscapeMarkup());
-
-        return windowTitle;
     }
 
     // WinAPI functions

@@ -22,6 +22,12 @@ internal class Config
         return _jsonObject?.SelectToken(jsonPath)?.Value<string>() ?? string.Empty;
     }
 
+    public int GetIntValue(string jsonPath)
+    {
+        // Use SelectToken to query the JSON and get the result as a int
+        return _jsonObject?.SelectToken(jsonPath)?.Value<int>() ?? 0;
+    }
+
     public bool GetBoolValue(string jsonPath)
     {
         // Use SelectToken to query the JSON and get the result as a string
