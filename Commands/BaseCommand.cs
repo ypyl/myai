@@ -4,7 +4,6 @@ using Spectre.Console.Cli;
 internal abstract class BaseCommand<T> : AsyncCommand<T> where T : CommandSettings
 {
     protected readonly Config _config = new();
-
     protected ExternalProcessPlugin ExternalProcessPlugin { get; }
     protected ILogger Logger { get; }
     protected BaseCommand()
@@ -29,9 +28,7 @@ internal abstract class BaseCommand<T> : AsyncCommand<T> where T : CommandSettin
         }
         return Serilog.Core.Logger.None;
     }
-
     // TODO refactor
-
     protected async Task<List<string>> ExternalContext(Dictionary<string, string> allFiles, string targetFile)
     {
         AnsiConsole.MarkupLine("[fuchsia]Extracting external types from the target code.[/]");
@@ -45,17 +42,13 @@ internal abstract class BaseCommand<T> : AsyncCommand<T> where T : CommandSettin
         }
         return result;
     }
-
     protected async Task<List<string>> ExternalTypesFromInstructionContext(string promptTypesFromInstructions, Dictionary<string, string> allFiles, string targetFileContent, ILogger logger)
     {
         AnsiConsole.MarkupLine("[fuchsia]Getting external types from instructions.[/]");
         var completionService = new CompletionService(_config).CreateChatCompletionService();
-
         var conversation = new Conversation(_config, completionService, logger);
-
         var userMessage = await new PromptFactory(logger).RenderPrompt(promptTypesFromInstructions,
             new Dictionary<string, object?> { ["csharp_code"] = targetFileContent });
-
         var answer = await conversation.Say(userMessage);
         var typesFromInstructions = answer.Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries);
         var result = new List<string>();

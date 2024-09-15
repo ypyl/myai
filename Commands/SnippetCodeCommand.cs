@@ -74,6 +74,8 @@ internal sealed class SnippetCommand : BaseCommand<SnippetCommand.Settings>
 
             await new FileIOPlugin().WriteAsync(targetFilePath, codeOnly);
 
+            new DotNetPlugin(_config.GetStringValue("$.working_dir"), Logger).FormatFile(targetFilePath);
+
             regenerate = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("[green]Do you like updated code?[/]")
