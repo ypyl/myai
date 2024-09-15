@@ -8,7 +8,7 @@ app.Configure(config =>
     config.AddCommand<GitCommitCommand>("commit")
         .WithDescription("Commit staged changes using generated message")
         .WithExample("commit");
-    config.AddCommand<GitCommitCommand>("diff")
+    config.AddCommand<GitDiffCommand>("diff")
         .WithDescription("SUm up diff between current branch and target")
         .WithExample("diff [targetBranch]");
     config.AddCommand<CodeCommand>("code")

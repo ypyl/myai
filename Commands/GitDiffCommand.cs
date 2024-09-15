@@ -13,7 +13,7 @@ internal sealed class GitDiffCommand : BaseCommand<GitDiffCommand.Settings>
     public override async Task<int> ExecuteAsync([NotNull] CommandContext context, [NotNull] Settings settings)
     {
         var gitPlugin = new GitPlugin(_config.GetStringValue("$.working_dir"), Logger);
-        var currentBranch = gitPlugin.GetCurrentBranch();
+        var currentBranch = gitPlugin.GetCurrentBranch().Trim();
 
         if (string.IsNullOrWhiteSpace(currentBranch))
         {

@@ -24,7 +24,7 @@ internal sealed class GitPlugin(string workingDir, ILogger logger)
     {
         return AnsiConsole.Status().Start("Getting git diff...", ctx =>
         {
-            return new ExternalAppPlugin(workingDir, logger).ExecuteCommand("git", $"diff --merge-base {targetBranch} ${sourceBranch}");
+            return new ExternalAppPlugin(workingDir, logger).ExecuteCommand("git", $"diff --merge-base {targetBranch} {sourceBranch}");
         });
     }
 
