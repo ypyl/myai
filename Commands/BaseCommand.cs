@@ -60,4 +60,33 @@ internal abstract class BaseCommand<T> : AsyncCommand<T> where T : CommandSettin
         }
         return result;
     }
+    protected async Task FixGeneratedOutput(Conversation conversation, string answer, Func<string, Task> action, string promptRegenerate, string prefix, string postfix)
+    {
+        var regenerate = true;
+        while (regenerate)
+        {
+            answer = await RetryGenerateCode(conversation, answer, promptRegenerate, prefix, postfix);
+            var codeOnly = answer[prefix.Length..^postfix.Length];
+
+            await action(codeOnly.TrimStart());
+
+            var userComment = AnsiConsole.Prompt(new TextPrompt<string>("[green]Anything to fix (empty answer to skip?[/]"));
+
+            regenerate = !string.IsNullOrWhiteSpace(userComment);
+
+            if (!regenerate) break;
+
+            answer = await new PromptFactory(Logger).RenderPrompt(promptRegenerate, new Dictionary<string, object?> { ["csharp_comment"] = userComment });
+        }
+    }
+
+    private static async Task<string> RetryGenerateCode(Conversation conversation, string userMessage, string promptRegenerate, string prefix, string postfix)
+    {
+        var answer = await conversation.Say(userMessage);
+        while (!answer.StartsWith(prefix) || !answer.EndsWith(postfix))
+        {
+            answer = await conversation.Say(string.Format(promptRegenerate, prefix, postfix));
+        }
+        return answer;
+    }
 }

@@ -42,32 +42,16 @@ internal sealed class CodeCommand : BaseCommand<CodeCommand.Settings>
         var conversation = new Conversation(_config, completionService, Logger);
 
         var answer = await conversation.Say(userMessage);
+
         const string Prefix = "```csharp";
         const string Postfix = "```";
 
-        var regenerate = true;
-        while (regenerate)
+        async Task action(string code)
         {
-            while (!answer.StartsWith(Prefix) || !answer.EndsWith(Postfix))
-            {
-                // TODO loop protection
-                answer = await conversation.Say(string.Format(PromptRegenerate, Prefix, Postfix));
-            }
-            var codeOnly = answer[Prefix.Length..^Postfix.Length];
-
-            await new FileIOPlugin().WriteAsync(targetFilePath, codeOnly.TrimStart());
-
-            regenerate = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("[green]Do you like updated code?[/]")
-                    .AddChoices(["Yes", "No"])) == "No";
-
-            if (!regenerate) break;
-
-            var userComment = AnsiConsole.Prompt(new TextPrompt<string>("[red]What is the issue with generated code?[/]"));
-
-            answer = await conversation.Say(userComment);
+            await new FileIOPlugin().WriteAsync(targetFilePath, code);
         }
+
+        await FixGeneratedOutput(conversation, answer, action, PromptRegenerate, Prefix, Postfix);
 
         return 0;
     }

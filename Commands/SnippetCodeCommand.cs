@@ -63,30 +63,14 @@ internal sealed class SnippetCommand : BaseCommand<SnippetCommand.Settings>
         const string Prefix = "```csharp";
         const string Postfix = "```";
 
-        var regenerate = true;
-        while (regenerate)
+        async Task action(string answer)
         {
-            while (!answer.StartsWith(Prefix) || !answer.EndsWith(Postfix))
-            {
-                answer = await conversation.Say(string.Format(PromptRegenerate, Prefix, Postfix));
-            }
             var codeOnly = string.Join('\n', start) + "\n" + answer[Prefix.Length..^Postfix.Length] + "\n" + string.Join('\n', end);
-
             await new FileIOPlugin().WriteAsync(targetFilePath, codeOnly);
-
             new DotNetPlugin(_config.GetStringValue("$.working_dir"), Logger).FormatFile(targetFilePath);
-
-            regenerate = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("[green]Do you like updated code?[/]")
-                    .AddChoices(["Yes", "No"])) == "No";
-
-            if (!regenerate) break;
-
-            var userComment = AnsiConsole.Prompt(new TextPrompt<string>("[red]What is the issue with generated code?[/]"));
-
-            answer = await conversation.Say(userComment);
         }
+
+        await FixGeneratedOutput(conversation, answer, action, PromptRegenerate, Prefix, Postfix);
 
         return 0;
     }
