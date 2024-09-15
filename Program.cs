@@ -8,6 +8,9 @@ app.Configure(config =>
     config.AddCommand<GitCommitCommand>("commit")
         .WithDescription("Commit staged changes using generated message")
         .WithExample("commit");
+    config.AddCommand<GitCommitCommand>("diff")
+        .WithDescription("SUm up diff between current branch and target")
+        .WithExample("diff [targetBranch]");
     config.AddCommand<CodeCommand>("code")
         .WithDescription("Complete code in opened VSCode file")
         .WithExample("code");

@@ -14,17 +14,22 @@ internal sealed class GitDiffCommand : BaseCommand<GitDiffCommand.Settings>
     {
         var gitPlugin = new GitPlugin(_config.GetStringValue("$.working_dir"), Logger);
         var currentBranch = gitPlugin.GetCurrentBranch();
+
         if (string.IsNullOrWhiteSpace(currentBranch))
         {
             AnsiConsole.MarkupLine("[yellow]Warning: Current branch is empty. Please check your git repository.[/]");
             return 1;
         }
 
+        AnsiConsole.MarkupLine("[green]Current branch:[/] [navy]{0}[/]", currentBranch);
+
         if (settings.TargetBranch == null)
         {
             AnsiConsole.MarkupLine("[red]Warning: Target branch is not specified.[/]");
             return 2;
         }
+
+        AnsiConsole.MarkupLine("[green]Target branch:[/] [navy]{0}[/]", settings.TargetBranch);
 
         var diff = gitPlugin.GitDiffMergeBase(currentBranch, settings.TargetBranch);
         var userMessage = await new PromptFactory(Logger).RenderPrompt(PromptMain, new Dictionary<string, object?> { ["diff_output"] = diff });
