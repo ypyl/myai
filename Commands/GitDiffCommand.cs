@@ -2,14 +2,17 @@
 using Spectre.Console;
 using Spectre.Console.Cli;
 using TextCopy;
+
 internal sealed class GitDiffCommand : BaseCommand<GitDiffCommand.Settings>
 {
     private string PromptMain => _config.GetStringValue("$.diff.main");
+
     public sealed class Settings : CommandSettings
     {
         [CommandArgument(0, "[targetBranch]")]
         public string? TargetBranch { get; set; }
     }
+
     public override async Task<int> ExecuteAsync([NotNull] CommandContext context, [NotNull] Settings settings)
     {
         var gitPlugin = new GitPlugin(_config.GetStringValue("$.working_dir"), Logger);
@@ -23,10 +26,22 @@ internal sealed class GitDiffCommand : BaseCommand<GitDiffCommand.Settings>
 
         AnsiConsole.MarkupLine("[green]Current branch:[/] [navy]{0}[/]", currentBranch);
 
-        if (settings.TargetBranch == null)
+        if (!gitPlugin.GitBranchExists(currentBranch))
+        {
+            AnsiConsole.MarkupLine("[red]Error: Current branch does not exist.[/]");
+            return 3;
+        }
+
+        if (string.IsNullOrWhiteSpace(settings.TargetBranch))
         {
             AnsiConsole.MarkupLine("[red]Warning: Target branch is not specified.[/]");
             return 2;
+        }
+
+        if (!gitPlugin.GitBranchExists(settings.TargetBranch))
+        {
+            AnsiConsole.MarkupLine("[red]Error: Target branch does not exist.[/]");
+            return 4;
         }
 
         AnsiConsole.MarkupLine("[green]Target branch:[/] [navy]{0}[/]", settings.TargetBranch);
