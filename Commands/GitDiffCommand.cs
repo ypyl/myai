@@ -43,12 +43,8 @@ internal sealed class GitDiffCommand : BaseCommand<GitDiffCommand.Settings>
             {
                 Header = new PanelHeader("Output")
             });
-            regenerate = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("[green]Do you like output?[/]")
-                    .AddChoices(["Yes", "No"])) == "No";
-            if (!regenerate) break;
-            var userComment = AnsiConsole.Prompt(new TextPrompt<string>("[red]What is the issue with output?[/]"));
+            var userComment = AnsiConsole.Prompt(new TextPrompt<string>("[green]Anything to fix?[/]").AllowEmpty());
+            if (string.IsNullOrWhiteSpace(userComment)) break;
             answer = await conversation.Say(userComment);
         }
         await ClipboardService.SetTextAsync(answer);
