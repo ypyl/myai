@@ -70,7 +70,7 @@ internal abstract class BaseCommand<T> : AsyncCommand<T> where T : CommandSettin
 
             await action(codeOnly.TrimStart());
 
-            var userComment = AnsiConsole.Prompt(new TextPrompt<string>("[green]Anything to fix (empty answer to skip?[/]"));
+            var userComment = AnsiConsole.Prompt(new TextPrompt<string>("[green]Anything to fix?[/]"));
 
             regenerate = !string.IsNullOrWhiteSpace(userComment);
 
