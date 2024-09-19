@@ -15,7 +15,7 @@ internal sealed class GitDiffCommand : BaseCommand<GitDiffCommand.Settings>
 
     public override async Task<int> ExecuteAsync([NotNull] CommandContext context, [NotNull] Settings settings)
     {
-        var gitPlugin = new GitPlugin(_config.GetStringValue("$.working_dir"), Logger);
+        var gitPlugin = new GitPlugin(_config.GetStringValue("$.working_dir"), _config.GetStringValue("$.remote_repository_name"), Logger);
         var currentBranch = gitPlugin.GetCurrentBranch().Trim();
 
         if (string.IsNullOrWhiteSpace(currentBranch))
@@ -45,6 +45,9 @@ internal sealed class GitDiffCommand : BaseCommand<GitDiffCommand.Settings>
         }
 
         AnsiConsole.MarkupLine("[green]Target branch:[/] [navy]{0}[/]", settings.TargetBranch);
+
+        var result = gitPlugin.GitFetchBranch(settings.TargetBranch);
+        AnsiConsole.MarkupLine("[green]Fetched branch: {0}[/]", result);
 
         var diff = gitPlugin.GitDiffMergeBase(currentBranch, settings.TargetBranch);
         var userMessage = await new PromptFactory(Logger).RenderPrompt(PromptMain, new Dictionary<string, object?> { ["diff_output"] = diff });

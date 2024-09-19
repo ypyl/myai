@@ -13,7 +13,7 @@ internal sealed class GitCommitCommand : BaseCommand<GitCommitCommand.Settings>
 
     public override async Task<int> ExecuteAsync([NotNull] CommandContext context, [NotNull] Settings settings)
     {
-        var gitPlugin = new GitPlugin(_config.GetStringValue("$.working_dir"), Logger);
+        var gitPlugin = new GitPlugin(_config.GetStringValue("$.working_dir"), _config.GetStringValue("$.remote_repository_name"), Logger);
         var output = gitPlugin.GitDiffStaged();
         if (string.IsNullOrWhiteSpace(output))
         {

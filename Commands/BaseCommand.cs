@@ -9,7 +9,7 @@ internal abstract class BaseCommand<T> : AsyncCommand<T> where T : CommandSettin
     protected BaseCommand()
     {
         Logger = CreateLogger();
-        ExternalProcessPlugin = new ExternalProcessPlugin(_config.GetStringValue("$.processName"), _config.GetIntValue("$.pid"));
+        ExternalProcessPlugin = new ExternalProcessPlugin(_config.GetStringValue("$.process_name"), _config.GetIntValue("$.pid"));
     }
     private ILogger CreateLogger()
     {
