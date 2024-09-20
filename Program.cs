@@ -26,6 +26,9 @@ app.Configure(config =>
     config.AddCommand<ExplainCommand>("logging")
         .WithDescription("Add logging to code by using ILogger to it in opened VSCode file")
         .WithExample("logging");
+    config.AddCommand<CoFCommand>("cof")
+        .WithDescription("Chain of thought")
+        .WithExample("cof");
 
     config.SetExceptionHandler((ex, typeResolver) =>
     {

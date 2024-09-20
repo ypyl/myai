@@ -63,10 +63,8 @@ internal sealed class GitDiffCommand : BaseCommand<GitDiffCommand.Settings>
         var regenerate = true;
         while (regenerate)
         {
-            AnsiConsole.Write(new Panel(answer)
-            {
-                Header = new PanelHeader("Output")
-            });
+            AnsiConsole.Write(new Rule("Output"));
+            AnsiConsole.WriteLine(answer);
             var userComment = AnsiConsole.Prompt(new TextPrompt<string>("[green]Anything to fix?[/]").AllowEmpty());
             if (string.IsNullOrWhiteSpace(userComment)) break;
             answer = await conversation.Say(userComment);
