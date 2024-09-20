@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.SemanticKernel.ChatCompletion;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using TextCopy;
@@ -49,10 +50,15 @@ internal sealed class GitDiffCommand : BaseCommand<GitDiffCommand.Settings>
         var result = gitPlugin.GitFetchBranch(settings.TargetBranch);
         AnsiConsole.MarkupLine("[green]Fetched branch: {0}[/]", result);
 
-        var diff = gitPlugin.GitDiffMergeBase(currentBranch, settings.TargetBranch);
-        var userMessage = await new PromptFactory(Logger).RenderPrompt(PromptMain, new Dictionary<string, object?> { ["diff_output"] = diff });
         var completionService = new CompletionService(_config).CreateChatCompletionService();
-        var conversation = new Conversation(_config, completionService, Logger);
+        var taskNumber = await GetTaskNumber(completionService, currentBranch);
+
+        var infoAboutTaskNumber = taskNumber > 0 ? string.Format(_config.GetStringValue("$.diff.task_number_template"), taskNumber) : string.Empty;
+
+        var diff = gitPlugin.GitDiffMergeBase(currentBranch, settings.TargetBranch);
+        var userMessage = await new PromptFactory(Logger).RenderPrompt(PromptMain, new Dictionary<string, object?> { ["diff_output"] = diff, ["task_number_template"] = infoAboutTaskNumber });
+
+        var conversation = new Conversation(_config.GetStringValue("$.system"), completionService, Logger);
         var answer = await conversation.Say(userMessage);
         var regenerate = true;
         while (regenerate)
@@ -66,6 +72,22 @@ internal sealed class GitDiffCommand : BaseCommand<GitDiffCommand.Settings>
             answer = await conversation.Say(userComment);
         }
         await ClipboardService.SetTextAsync(answer);
+        return 0;
+    }
+
+    private async Task<int> GetTaskNumber(IChatCompletionService completionService, string branchName)
+    {
+        AnsiConsole.MarkupLine(_config.GetStringValue("$.task_from_branch.system"));
+        var conversation = new Conversation(_config.GetStringValue("$.task_from_branch.system"), completionService, Logger);
+        var userMessage = await new PromptFactory(Logger).RenderPrompt(_config.GetStringValue("$.task_from_branch.main"), new Dictionary<string, object?> { ["branch_name"] = branchName });
+        var answer = await conversation.Say(userMessage);
+
+        if (int.TryParse(answer, out var result))
+        {
+            AnsiConsole.MarkupLine("[green]Fetched task number from branch: {0}[/]", result);
+            return result;
+        }
+        AnsiConsole.MarkupLine("[yellow]Not able to fetch task number from branch.[/]", result);
         return 0;
     }
 }

@@ -32,7 +32,7 @@ internal sealed class AddLoggingCommand : BaseCommand<AddLoggingCommand.Settings
 
         var completionService = new CompletionService(_config).CreateChatCompletionService();
 
-        var conversation = new Conversation(_config, completionService, Logger);
+        var conversation = new Conversation(_config.GetStringValue("$.system"), completionService, Logger);
 
         var answer = await conversation.Say(userMessage);
 

@@ -4,9 +4,9 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using Serilog;
 using Spectre.Console;
 
-internal sealed class Conversation(Config settings, IChatCompletionService chatCompletionService, ILogger logger)
+internal sealed class Conversation(string systemPrompt, IChatCompletionService chatCompletionService, ILogger logger)
 {
-    private readonly ChatHistory _chatHistory = new(settings.GetStringValue("$.system") ?? string.Empty);
+    private readonly ChatHistory _chatHistory = new(systemPrompt);
 
     public async Task<string> Say(string message)
     {

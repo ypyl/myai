@@ -46,7 +46,7 @@ internal abstract class BaseCommand<T> : AsyncCommand<T> where T : CommandSettin
     {
         AnsiConsole.MarkupLine("[fuchsia]Getting external types from instructions.[/]");
         var completionService = new CompletionService(_config).CreateChatCompletionService();
-        var conversation = new Conversation(_config, completionService, logger);
+        var conversation = new Conversation(_config.GetStringValue("$.system"), completionService, logger);
         var userMessage = await new PromptFactory(logger).RenderPrompt(promptTypesFromInstructions,
             new Dictionary<string, object?> { ["csharp_code"] = targetFileContent });
         var answer = await conversation.Say(userMessage);
