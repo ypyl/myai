@@ -80,9 +80,8 @@ internal abstract class BaseCommand<T> : AsyncCommand<T> where T : CommandSettin
         }
     }
 
-    private static async Task<string> RetryGenerateCode(Conversation conversation, string userMessage, string promptRegenerate, string prefix, string postfix)
+    private static async Task<string> RetryGenerateCode(Conversation conversation, string answer, string promptRegenerate, string prefix, string postfix)
     {
-        var answer = await conversation.Say(userMessage);
         while (!answer.StartsWith(prefix) || !answer.EndsWith(postfix))
         {
             answer = await conversation.Say(string.Format(promptRegenerate, prefix, postfix));
