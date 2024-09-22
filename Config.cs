@@ -4,34 +4,36 @@ using Newtonsoft.Json.Linq;
 
 internal class Config
 {
-    private JObject? _jsonObject;
+    private readonly List<JObject> _jsonObjects = [];
 
     public Config(string filePath = "settings.json")
     {
         Load(filePath);
     }
 
-    public JToken? GetValue(string jsonPath)
+    private JToken? GetValue(string jsonPath)
     {
-        return _jsonObject?.SelectToken(jsonPath);
+        foreach (var jsonObject in _jsonObjects)
+        {
+            var result = jsonObject.SelectToken(jsonPath);
+            if (result is not null) return result;
+        }
+        return null;
     }
 
     public string GetStringValue(string jsonPath)
     {
-        // Use SelectToken to query the JSON and get the result as a string
-        return _jsonObject?.SelectToken(jsonPath)?.Value<string>() ?? string.Empty;
+        return GetValue(jsonPath)?.Value<string>() ?? string.Empty;
     }
 
     public int GetIntValue(string jsonPath)
     {
-        // Use SelectToken to query the JSON and get the result as a int
-        return _jsonObject?.SelectToken(jsonPath)?.Value<int>() ?? 0;
+        return GetValue(jsonPath)?.Value<int>() ?? default;
     }
 
     public bool GetBoolValue(string jsonPath)
     {
-        // Use SelectToken to query the JSON and get the result as a string
-        return _jsonObject?.SelectToken(jsonPath)?.Value<bool>() ?? false;
+        return GetValue(jsonPath)?.Value<bool>() ?? default;
     }
 
     private void Load(string filePath)
@@ -40,9 +42,9 @@ internal class Config
         var fullPath = Path.IsPathRooted(filePath) ? filePath : Path.Combine(Directory.GetCurrentDirectory(), filePath);
 
         // Try to find the file (search up the directory structure if necessary)
-        fullPath = FindFileUpInHierarchy(fullPath);
+        var settingFiles = FindFileUpInHierarchy(fullPath);
 
-        if (fullPath is null)
+        if (settingFiles.Count == 0)
         {
             AnsiConsole.WriteLine($"[yellow]Warning: The file '{filePath}' does not exist. Skipping...[/]");
             return; // Exit if file not found
@@ -50,11 +52,14 @@ internal class Config
 
         try
         {
-            // Read the JSON content from the file
-            string jsonContent = File.ReadAllText(fullPath);
+            foreach (var settingFile in settingFiles)
+            {
+                // Read the JSON content from the file
+                string jsonContent = File.ReadAllText(settingFile);
 
-            // Parse the JSON content into a JsonDocument
-            _jsonObject = JObject.Parse(jsonContent);
+                // Parse the JSON content into a JsonDocument
+                _jsonObjects.Add(JObject.Parse(jsonContent));
+            }
         }
         catch (JsonException ex)
         {
@@ -69,8 +74,9 @@ internal class Config
     }
 
     // Helper function to find a file by searching up the directory structure
-    private static string? FindFileUpInHierarchy(string path)
+    private static List<string> FindFileUpInHierarchy(string path)
     {
+        var settingsFile = new List<string>();
         var directory = Path.GetDirectoryName(path);
         var fileName = Path.GetFileName(path);
 
@@ -79,13 +85,13 @@ internal class Config
             string potentialFilePath = Path.Combine(directory, fileName);
             if (File.Exists(potentialFilePath))
             {
-                return potentialFilePath;
+                settingsFile.Add(potentialFilePath);
             }
 
             // Move to the parent directory
             directory = Directory.GetParent(directory)?.FullName;
         }
 
-        return null; // File not found
+        return settingsFile;
     }
 }
