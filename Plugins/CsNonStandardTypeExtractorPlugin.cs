@@ -19,13 +19,16 @@ internal sealed class CsNonStandardTypeExtractorPlugin
         }
 
         // TODO skip errors
-        var tree = CSharpSyntaxTree.ParseText(code);
-        var root = tree.GetCompilationUnitRoot();
+        return AnsiConsole.Status().Start("Searching non standard types...", ctx =>
+        {
+            var tree = CSharpSyntaxTree.ParseText(code);
+            var root = tree.GetCompilationUnitRoot();
 
-        var typeCollector = new TypeCollector();
-        typeCollector.Visit(root);
+            var typeCollector = new TypeCollector();
+            typeCollector.Visit(root);
 
-        return new List<string>(typeCollector.NonStandardTypes);
+            return new List<string>(typeCollector.NonStandardTypes);
+        });
     }
 
     private class TypeCollector : CSharpSyntaxWalker

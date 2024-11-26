@@ -14,13 +14,13 @@ internal sealed class FileFinderPlugin(string workingDir, ILogger logger)
         if (string.IsNullOrWhiteSpace(workingDir))
         {
             AnsiConsole.MarkupLine("[red]Error: Folder path cannot be null or empty.[/]");
-            return [];
+            return new Dictionary<string, string>();
         }
 
         if (!Directory.Exists(workingDir))
         {
             AnsiConsole.MarkupLine("[red]Error: The specified folder path does not exist: {0}[/]", workingDir.EscapeMarkup());
-            return [];
+            return new Dictionary<string, string>();
         }
 
         return AnsiConsole.Status().Start("Searching for .cs files...", ctx =>
@@ -47,6 +47,51 @@ internal sealed class FileFinderPlugin(string workingDir, ILogger logger)
             }
 
             return csFilesDictionary;
+        });
+    }
+
+    [KernelFunction("find_ts_files")]
+    [Description("Finds all .ts files in the specified folder and returns a dictionary with file names (without extension) as keys and full paths as values, ignoring files in 'obj' and 'bin' folders, and those ending with '.Design.ts'.")]
+    [return: Description("Dictionary with file names as keys and full paths as values")]
+    public Dictionary<string, string> FindTsFiles()
+    {
+        if (string.IsNullOrWhiteSpace(workingDir))
+        {
+            AnsiConsole.MarkupLine("[red]Error: Folder path cannot be null or empty.[/]");
+            return new Dictionary<string, string>();
+        }
+
+        if (!Directory.Exists(workingDir))
+        {
+            AnsiConsole.MarkupLine("[red]Error: The specified folder path does not exist: {0}[/]", workingDir.EscapeMarkup());
+            return new Dictionary<string, string>();
+        }
+
+        return AnsiConsole.Status().Start("Searching for .ts files...", ctx =>
+        {
+            var tsFilesDictionary = new Dictionary<string, string>();
+            var tsFiles = Directory.GetFiles(workingDir, "*.ts", SearchOption.AllDirectories)
+                .Where(file => !file.Contains(Path.DirectorySeparatorChar + "node_modules" + Path.DirectorySeparatorChar))
+                .ToList();
+            var tsxFiles = Directory.GetFiles(workingDir, "*.tsx", SearchOption.AllDirectories)
+                .Where(file => !file.Contains(Path.DirectorySeparatorChar + "node_modules" + Path.DirectorySeparatorChar))
+                .ToList();
+            tsFiles.AddRange(tsxFiles);
+
+            if (tsFiles.Count == 0)
+            {
+                AnsiConsole.MarkupLine("[yellow]No .ts files found in the specified folder.[/]");
+            }
+
+            foreach (var file in tsFiles)
+            {
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
+                tsFilesDictionary[fileNameWithoutExtension] = file;
+
+                logger.Verbose(string.Format("Found: {0} -> {1}", fileNameWithoutExtension, file));
+            }
+
+            return tsFilesDictionary;
         });
     }
 

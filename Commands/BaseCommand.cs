@@ -29,10 +29,17 @@ internal abstract class BaseCommand<T> : AsyncCommand<T> where T : CommandSettin
         return Serilog.Core.Logger.None;
     }
     // TODO refactor
-    protected async Task<List<string>> ExternalContext(Dictionary<string, string> allFiles, string targetFile)
+    protected async Task<List<string>> ExternalContext(IDictionary<string, string> allFiles, string targetFile)
     {
         AnsiConsole.MarkupLine("[fuchsia]Extracting external types from the target code.[/]");
-        var externalTypes = new CsNonStandardTypeExtractorPlugin().ExtractNonStandardTypes(targetFile);
+
+        var externalTypes = Path.GetExtension(targetFile) switch
+        {
+            ".cs" => new CsNonStandardTypeExtractorPlugin().ExtractNonStandardTypes(targetFile),
+            ".ts" => new TsNonStandardModuleExtractorPlugin().ExtractNonStandardModules(targetFile),
+            ".tsx" => new TsNonStandardModuleExtractorPlugin().ExtractNonStandardModules(targetFile),
+            _ => []
+        };
         var result = new List<string>();
         foreach (var path in allFiles.Where(x => externalTypes.Contains(x.Key)).Select(x => x.Value))
         {
@@ -42,13 +49,14 @@ internal abstract class BaseCommand<T> : AsyncCommand<T> where T : CommandSettin
         }
         return result;
     }
-    protected async Task<List<string>> ExternalTypesFromInstructionContext(string promptTypesFromInstructions, Dictionary<string, string> allFiles, string targetFileContent, ILogger logger)
+
+    protected async Task<List<string>> ExternalTypesFromInstructionContext(string promptTypesFromInstructions, IDictionary<string, string> allFiles, string targetFileContent, ILogger logger)
     {
         AnsiConsole.MarkupLine("[fuchsia]Getting external types from instructions.[/]");
         var completionService = new CompletionService(_config).CreateChatCompletionService();
         var conversation = new Conversation(_config.GetStringValue("$.system"), completionService, logger);
         var userMessage = await new PromptFactory(logger).RenderPrompt(promptTypesFromInstructions,
-            new Dictionary<string, object?> { ["csharp_code"] = targetFileContent });
+            new Dictionary<string, object?> { ["code"] = targetFileContent });
         var answer = await conversation.Say(userMessage);
         var typesFromInstructions = answer.Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries);
         var result = new List<string>();
@@ -60,6 +68,8 @@ internal abstract class BaseCommand<T> : AsyncCommand<T> where T : CommandSettin
         }
         return result;
     }
+
+    // TODO refactor
     protected async Task FixGeneratedOutput(Conversation conversation, string answer, Func<string, Task> action, string promptRegenerate, string prefix, string postfix)
     {
         var regenerate = true;

@@ -5,15 +5,16 @@ var app = new CommandApp();
 
 app.Configure(config =>
 {
+    config.AddCommand<CodeCommand>("code")
+        .WithDescription("Complete code in opened VSCode file")
+        .WithExample("code");
     config.AddCommand<GitCommitCommand>("commit")
         .WithDescription("Commit staged changes using generated message")
         .WithExample("commit");
     config.AddCommand<GitDiffCommand>("diff")
-        .WithDescription("SUm up diff between current branch and target")
+        .WithDescription("Sum up diff between current branch and target")
         .WithExample("diff [targetBranch]");
-    config.AddCommand<CodeCommand>("code")
-        .WithDescription("Complete code in opened VSCode file")
-        .WithExample("code");
+
     config.AddCommand<SnippetCommand>("snippet")
         .WithDescription("Implement code snippet in opened VSCode file")
         .WithExample("snippet");
@@ -23,7 +24,7 @@ app.Configure(config =>
     config.AddCommand<ExplainCommand>("explain")
         .WithDescription("Explain code by adding comments to it in opened VSCode file")
         .WithExample("explain");
-    config.AddCommand<ExplainCommand>("logging")
+    config.AddCommand<AddLoggingCommand>("logging")
         .WithDescription("Add logging to code by using ILogger to it in opened VSCode file")
         .WithExample("logging");
     config.AddCommand<CoFCommand>("cof")
