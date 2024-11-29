@@ -32,7 +32,7 @@ internal sealed class CodeCommand : BaseCommand<CodeCommand.Settings>
     {
         public required string WorkingDirectory { get; init; }
         public required string TypesFromInstructions { get; init; }
-        public required Func<FileFinderPlugin, IDictionary<string, string>> FindFiles { get; init; }
+        public required Func<FileFinder, IDictionary<string, string>> FindFiles { get; init; }
     }
 
     private CodeSettings GetCodeSettings(CodeLanguage language)
@@ -72,7 +72,7 @@ internal sealed class CodeCommand : BaseCommand<CodeCommand.Settings>
             return 1;
         }
 
-        var fileContent = await new FileIOPlugin().ReadAsync(targetFilePath);
+        var fileContent = await new FileIO().ReadAsync(targetFilePath);
 
         if (Path.GetExtension(targetFileName) == ".cs")
         {
@@ -84,7 +84,7 @@ internal sealed class CodeCommand : BaseCommand<CodeCommand.Settings>
             var filtered = additionalFileContents.Distinct();
 
             var additionalContext = filtered.Any() ?
-                await new PromptFactory(Logger).RenderPrompt(_config.GetStringValue("$.code.csharp.additional_context"),
+                await new PromptBuilder(Logger).RenderPrompt(_config.GetStringValue("$.code.csharp.additional_context"),
                     new Dictionary<string, object?> { ["code"] = string.Join("\n\n", filtered) }) : string.Empty;
 
             if (!string.IsNullOrWhiteSpace(additionalContext))
@@ -92,7 +92,7 @@ internal sealed class CodeCommand : BaseCommand<CodeCommand.Settings>
                 additionalContext += "\n";
             }
 
-            var userMessage = await new PromptFactory(Logger).RenderPrompt(_config.GetStringValue("$.code.csharp.user_message_code"),
+            var userMessage = await new PromptBuilder(Logger).RenderPrompt(_config.GetStringValue("$.code.csharp.user_message_code"),
                 new Dictionary<string, object?> { ["code"] = fileContent });
 
             var completionService = new CompletionService(_config).CreateChatCompletionService();
@@ -106,7 +106,7 @@ internal sealed class CodeCommand : BaseCommand<CodeCommand.Settings>
 
             async Task action(string code)
             {
-                await new FileIOPlugin().WriteAsync(targetFilePath, code);
+                await new FileIO().WriteAsync(targetFilePath, code);
             }
 
             await FixGeneratedOutput(conversation, answer, action, _config.GetStringValue("$.code.regenerate"), Prefix, Postfix);
@@ -124,7 +124,7 @@ internal sealed class CodeCommand : BaseCommand<CodeCommand.Settings>
             var filtered = additionalFileContents.Distinct();
 
             var additionalContext = filtered.Any() ?
-                await new PromptFactory(Logger).RenderPrompt(_config.GetStringValue("$.code.typescript.additional_context"),
+                await new PromptBuilder(Logger).RenderPrompt(_config.GetStringValue("$.code.typescript.additional_context"),
                     new Dictionary<string, object?> { ["code"] = string.Join("\n\n", filtered) }) : string.Empty;
 
             if (!string.IsNullOrWhiteSpace(additionalContext))
@@ -132,7 +132,7 @@ internal sealed class CodeCommand : BaseCommand<CodeCommand.Settings>
                 additionalContext += "\n";
             }
 
-            var userMessage = await new PromptFactory(Logger).RenderPrompt(_config.GetStringValue("$.code.typescript.user_message_code"),
+            var userMessage = await new PromptBuilder(Logger).RenderPrompt(_config.GetStringValue("$.code.typescript.user_message_code"),
                 new Dictionary<string, object?> { ["code"] = fileContent });
 
             var completionService = new CompletionService(_config).CreateChatCompletionService();
@@ -146,7 +146,7 @@ internal sealed class CodeCommand : BaseCommand<CodeCommand.Settings>
 
             async Task action(string code)
             {
-                await new FileIOPlugin().WriteAsync(targetFilePath, code);
+                await new FileIO().WriteAsync(targetFilePath, code);
             }
 
             await FixGeneratedOutput(conversation, answer, action, _config.GetStringValue("$.code.regenerate"), Prefix, Postfix);

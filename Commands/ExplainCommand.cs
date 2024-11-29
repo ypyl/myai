@@ -25,13 +25,13 @@ internal sealed class ExplainCommand : BaseCommand<ExplainCommand.Settings>
             AnsiConsole.MarkupLine("[red]Not able to find {0} in workding directory.[/]", targetFileName);
             return 1;
         }
-        var fileContent = await new FileIOPlugin().ReadAsync(targetFilePath);
+        var fileContent = await new FileIO().ReadAsync(targetFilePath);
 
         var additional = await ExternalContext(allFiles, fileContent);
 
         var filtered = additional.Distinct();
 
-        var userMessage = await new PromptFactory(Logger).RenderPrompt(PromptMain,
+        var userMessage = await new PromptBuilder(Logger).CreatePrompt(PromptMain,
             new Dictionary<string, object?> { ["csharp_code"] = fileContent, ["csharp_additional_code"] = string.Join("\n\n", filtered) });
 
         var completionService = new CompletionService(_config).CreateChatCompletionService();
@@ -44,7 +44,7 @@ internal sealed class ExplainCommand : BaseCommand<ExplainCommand.Settings>
 
         async Task action(string code)
         {
-            await new FileIOPlugin().WriteAsync(targetFilePath, code);
+            await new FileIO().WriteAsync(targetFilePath, code);
         }
 
         await FixGeneratedOutput(conversation, answer, action, PromptRegenerate, Prefix, Postfix);

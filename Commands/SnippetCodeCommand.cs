@@ -24,7 +24,7 @@ internal sealed class SnippetCommand : BaseCommand<SnippetCommand.Settings>
             AnsiConsole.MarkupLine("[red]Not able to find {0} in workding directory.[/]", targetFileName);
             return 1;
         }
-        var fileContent = await new FileIOPlugin().ReadAsync(targetFilePath);
+        var fileContent = await new FileIO().ReadAsync(targetFilePath);
 
         var lines = fileContent.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
         var linesWithInstructions = lines.Where(x => x.TrimStart().StartsWith("// @myai")).ToList();
@@ -52,7 +52,7 @@ internal sealed class SnippetCommand : BaseCommand<SnippetCommand.Settings>
         List<string> additionalFileContents = [.. additionalFromInstruction, .. additional];
         var filtered = additionalFileContents.Distinct();
 
-        var userMessage = await new PromptFactory(Logger).RenderPrompt(PromptMain,
+        var userMessage = await new PromptBuilder(Logger).CreatePrompt(PromptMain,
             new Dictionary<string, object?> { ["csharp_code"] = fileContent, ["csharp_additional_code"] = string.Join("\n\n", filtered) });
 
         var completionService = new CompletionService(_config).CreateChatCompletionService();
@@ -66,7 +66,7 @@ internal sealed class SnippetCommand : BaseCommand<SnippetCommand.Settings>
         async Task action(string answer)
         {
             var codeOnly = string.Join('\n', start) + "\n" + answer[Prefix.Length..^Postfix.Length] + "\n" + string.Join('\n', end);
-            await new FileIOPlugin().WriteAsync(targetFilePath, codeOnly);
+            await new FileIO().WriteAsync(targetFilePath, codeOnly);
             new DotNetPlugin(_config.GetStringValue("$.working_dir"), Logger).FormatFile(targetFilePath);
         }
 

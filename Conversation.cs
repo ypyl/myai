@@ -1,12 +1,17 @@
 
 
-using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.Extensions.AI;
 using Serilog;
 using Spectre.Console;
 
 internal sealed class Conversation(string systemPrompt, IChatCompletionService chatCompletionService, ILogger logger)
 {
-    private readonly ChatHistory _chatHistory = new(systemPrompt);
+    private readonly List<ChatMessage> _chatHistory = [];
+
+    public void AddSystemMessage(string message)
+    {
+        _chatHistory.Add(new ChatMessage(ChatRole.System, message));
+    }
 
     public async Task<string> Say(string message)
     {

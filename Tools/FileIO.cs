@@ -1,18 +1,17 @@
 ﻿using System.ComponentModel;
 using System.Text;
-using Microsoft.SemanticKernel;
 using Spectre.Console;
 
-internal sealed class FileIOPlugin
+public sealed class FileIO
 {
-    [KernelFunction, Description("Read a file")]
+    [Description("Read a file")]
     public async Task<string> ReadAsync([Description("Source file")] string path)
     {
         AnsiConsole.MarkupLine("[green]Reading content of file:[/] [navy]{0}[/]", path);
         return await File.ReadAllTextAsync(path);
     }
 
-    [KernelFunction, Description("Write a file")]
+    [Description("Write a file")]
     public async Task WriteAsync(
         [Description("Destination file")] string path,
         [Description("File content")] string content)

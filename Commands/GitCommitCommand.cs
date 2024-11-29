@@ -20,7 +20,7 @@ internal sealed class GitCommitCommand : BaseCommand<GitCommitCommand.Settings>
             AnsiConsole.MarkupLine("[red]Git diff output is empty. Consider stage some files to generate commit message for them.[/]");
             return 1;
         }
-        var userMessage = await new PromptFactory(Logger).RenderPrompt(PromptMain, new Dictionary<string, object?> { ["diff_output"] = output });
+        var userMessage = await new PromptBuilder(Logger).CreatePrompt(PromptMain, new Dictionary<string, object?> { ["diff_output"] = output });
 
         var completionService = new CompletionService(_config).CreateChatCompletionService();
 

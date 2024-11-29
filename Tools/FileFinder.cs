@@ -1,33 +1,31 @@
 ﻿using System.ComponentModel;
-using Microsoft.SemanticKernel;
-using Serilog;
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
 
 [Description("Plugin to find all C# files in a directory.")]
-internal sealed class FileFinderPlugin(string workingDir, ILogger logger)
+internal sealed class FileFinder(ILogger<FileFinder> logger)
 {
-    [KernelFunction("find_cs_files")]
     [Description("Finds all .cs files in the specified folder and returns a dictionary with file names (without extension) as keys and full paths as values, ignoring files in 'obj' and 'bin' folders, and those ending with '.Design.cs'.")]
     [return: Description("Dictionary with file names as keys and full paths as values")]
-    public Dictionary<string, string> FindCsFiles()
+    public Dictionary<string, string> FindCsFiles(string dir)
     {
-        if (string.IsNullOrWhiteSpace(workingDir))
+        if (string.IsNullOrWhiteSpace(dir))
         {
             AnsiConsole.MarkupLine("[red]Error: Folder path cannot be null or empty.[/]");
-            return new Dictionary<string, string>();
+            return [];
         }
 
-        if (!Directory.Exists(workingDir))
+        if (!Directory.Exists(dir))
         {
-            AnsiConsole.MarkupLine("[red]Error: The specified folder path does not exist: {0}[/]", workingDir.EscapeMarkup());
-            return new Dictionary<string, string>();
+            AnsiConsole.MarkupLine("[red]Error: The specified folder path does not exist: {0}[/]", dir.EscapeMarkup());
+            return [];
         }
 
         return AnsiConsole.Status().Start("Searching for .cs files...", ctx =>
         {
             var csFilesDictionary = new Dictionary<string, string>();
 
-            var csFiles = Directory.GetFiles(workingDir, "*.cs", SearchOption.AllDirectories)
+            var csFiles = Directory.GetFiles(dir, "*.cs", SearchOption.AllDirectories)
                 .Where(file => !file.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar) &&
                                !file.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar) &&
                                !file.EndsWith(".Design.cs", StringComparison.OrdinalIgnoreCase))
@@ -43,37 +41,36 @@ internal sealed class FileFinderPlugin(string workingDir, ILogger logger)
                 var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
                 csFilesDictionary[fileNameWithoutExtension] = file;
 
-                logger.Verbose(string.Format("Found: {0} -> {1}", fileNameWithoutExtension, file));
+                logger.LogTrace("Found: {fileNameWithoutExtension} -> {file}", fileNameWithoutExtension, file);
             }
 
             return csFilesDictionary;
         });
     }
 
-    [KernelFunction("find_ts_files")]
     [Description("Finds all .ts files in the specified folder and returns a dictionary with file names (without extension) as keys and full paths as values, ignoring files in 'obj' and 'bin' folders, and those ending with '.Design.ts'.")]
     [return: Description("Dictionary with file names as keys and full paths as values")]
-    public Dictionary<string, string> FindTsFiles()
+    public Dictionary<string, string> FindTsFiles(string dir)
     {
-        if (string.IsNullOrWhiteSpace(workingDir))
+        if (string.IsNullOrWhiteSpace(dir))
         {
             AnsiConsole.MarkupLine("[red]Error: Folder path cannot be null or empty.[/]");
-            return new Dictionary<string, string>();
+            return [];
         }
 
-        if (!Directory.Exists(workingDir))
+        if (!Directory.Exists(dir))
         {
-            AnsiConsole.MarkupLine("[red]Error: The specified folder path does not exist: {0}[/]", workingDir.EscapeMarkup());
-            return new Dictionary<string, string>();
+            AnsiConsole.MarkupLine("[red]Error: The specified folder path does not exist: {0}[/]", dir.EscapeMarkup());
+            return [];
         }
 
         return AnsiConsole.Status().Start("Searching for .ts files...", ctx =>
         {
             var tsFilesDictionary = new Dictionary<string, string>();
-            var tsFiles = Directory.GetFiles(workingDir, "*.ts", SearchOption.AllDirectories)
+            var tsFiles = Directory.GetFiles(dir, "*.ts", SearchOption.AllDirectories)
                 .Where(file => !file.Contains(Path.DirectorySeparatorChar + "node_modules" + Path.DirectorySeparatorChar))
                 .ToList();
-            var tsxFiles = Directory.GetFiles(workingDir, "*.tsx", SearchOption.AllDirectories)
+            var tsxFiles = Directory.GetFiles(dir, "*.tsx", SearchOption.AllDirectories)
                 .Where(file => !file.Contains(Path.DirectorySeparatorChar + "node_modules" + Path.DirectorySeparatorChar))
                 .ToList();
             tsFiles.AddRange(tsxFiles);
@@ -88,27 +85,26 @@ internal sealed class FileFinderPlugin(string workingDir, ILogger logger)
                 var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
                 tsFilesDictionary[fileNameWithoutExtension] = file;
 
-                logger.Verbose(string.Format("Found: {0} -> {1}", fileNameWithoutExtension, file));
+                logger.LogTrace("Found: {fileNameWithoutExtension} -> {file}", fileNameWithoutExtension, file);
             }
 
             return tsFilesDictionary;
         });
     }
 
-    [KernelFunction("find_csproj_files")]
     [Description("Finds all .csproj files in the specified folder and returns a dictionary with file names (without extension) as keys and full paths as values.")]
     [return: Description("Dictionary with file names as keys and full paths as values")]
-    public Dictionary<string, string> FindCsprojFiles()
+    public Dictionary<string, string> FindCsprojFiles(string dir)
     {
-        if (string.IsNullOrWhiteSpace(workingDir))
+        if (string.IsNullOrWhiteSpace(dir))
         {
             AnsiConsole.MarkupLine("[red]Error: Folder path cannot be null or empty.[/]");
             return new Dictionary<string, string>();
         }
 
-        if (!Directory.Exists(workingDir))
+        if (!Directory.Exists(dir))
         {
-            AnsiConsole.MarkupLine("[red]Error: The specified folder path does not exist: {0}[/]", workingDir.EscapeMarkup());
+            AnsiConsole.MarkupLine("[red]Error: The specified folder path does not exist: {0}[/]", dir.EscapeMarkup());
             return new Dictionary<string, string>();
         }
 
@@ -116,7 +112,7 @@ internal sealed class FileFinderPlugin(string workingDir, ILogger logger)
         {
             var csprojFilesDictionary = new Dictionary<string, string>();
 
-            var csprojFiles = Directory.GetFiles(workingDir, "*.csproj", SearchOption.AllDirectories)
+            var csprojFiles = Directory.GetFiles(dir, "*.csproj", SearchOption.AllDirectories)
                 .ToList();
 
             if (csprojFiles.Count == 0)
@@ -129,17 +125,16 @@ internal sealed class FileFinderPlugin(string workingDir, ILogger logger)
                 var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
                 csprojFilesDictionary[fileNameWithoutExtension] = file;
 
-                logger.Verbose(string.Format("Found: {0} -> {1}", fileNameWithoutExtension, file));
+                logger.LogTrace("Found: {fileNameWithoutExtension} -> {file}", fileNameWithoutExtension, file);
             }
 
             return csprojFilesDictionary;
         });
     }
 
-    [KernelFunction("find_json_files")]
     [Description("Finds all .json files in the specified folder and returns a dictionary with file names (without extension) as keys and full paths as values.")]
     [return: Description("Dictionary with file names as keys and full paths as values")]
-    public Dictionary<string, string> FindJsonFiles()
+    public Dictionary<string, string> FindJsonFiles(string workingDir)
     {
         if (string.IsNullOrWhiteSpace(workingDir))
         {
@@ -170,17 +165,16 @@ internal sealed class FileFinderPlugin(string workingDir, ILogger logger)
                 var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
                 jsonFilesDictionary[fileNameWithoutExtension] = file;
 
-                logger.Verbose(string.Format("Found: {0} -> {1}", fileNameWithoutExtension, file));
+                logger.LogTrace("Found: {fileNameWithoutExtension} -> {file}", fileNameWithoutExtension, file);
             }
 
             return jsonFilesDictionary;
         });
     }
 
-    [KernelFunction("find_closest_csproj_file")]
     [Description("Finds the closest .csproj file to the current directory.")]
     [return: Description("Path to the closest .csproj file or null if not found")]
-    public string FindClosestCsprojFile()
+    public string? FindClosestCsprojFile(string workingDir)
     {
         string currentDir = workingDir;
         while (!Directory.GetFiles(currentDir, "*.csproj").Any())

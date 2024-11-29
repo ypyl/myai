@@ -1,7 +1,34 @@
-﻿using Spectre.Console;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.AI;
+using Spectre.Console;
 using Spectre.Console.Cli;
 
-var app = new CommandApp();
+var configuration = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json")
+    .Build();
+
+var serviceCollection = new ServiceCollection();
+
+serviceCollection.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Trace));
+serviceCollection.AddScoped<PromptBuilder>();
+serviceCollection.AddScoped<ExternalProcess>();
+serviceCollection.AddScoped<ExternalContext>();
+serviceCollection.AddScoped<FileFinder>();
+serviceCollection.AddScoped<FileIO>();
+serviceCollection.Configure<AddLoggingOptions>(configuration);
+
+serviceCollection.AddChatClient(
+    new ChatClientBuilder(new OllamaChatClient(new Uri("http://localhost:11434/"), "llama3.2"))
+    .UseFunctionInvocation()
+    .Build());
+
+var registrar = new TypeRegistrar(serviceCollection);
+
+serviceCollection.AddSingleton<IConfiguration>(configuration);
+
+var app = new CommandApp(registrar);
 
 app.Configure(config =>
 {

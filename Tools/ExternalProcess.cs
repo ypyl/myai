@@ -2,20 +2,17 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.SemanticKernel;
 using Spectre.Console;
 
 [Description("Plugin to interact with external processes.")]
-internal sealed class ExternalProcessPlugin(string processName, int processId = 0)
+internal sealed class ExternalProcess()
 {
-    [KernelFunction("window_target_file_name")]
     [Description("Gets the name of file name.")]
     [return: Description("File name currently open or an empty string if not found.")]
-    public string WindowTargetFileName()
+    public string GetCurrentFileNameFromWindow(string processName)
     {
-        var tracingString = processId > 0 ? $"using processId: {processId}" : $"using processName: {processName}";
-        AnsiConsole.MarkupLine($"[blue]Tracing: {tracingString}[/]");
-        var mainWindowTitle = processId > 0 ? GetWindowTitleById(processId) : GetWindowTitleByName(processName);
+        AnsiConsole.MarkupLine($"[blue]Tracing: using processName: {processName}[/]");
+        var mainWindowTitle = GetWindowTitleByName(processName);
         var splittedTitle = mainWindowTitle.Split('-');
 
         if (splittedTitle.Length >= 2)
@@ -26,6 +23,25 @@ internal sealed class ExternalProcessPlugin(string processName, int processId = 
         }
 
         AnsiConsole.MarkupLine("[red]Not able to extract file name from [0] process title.[/]", processName);
+        return string.Empty;
+    }
+
+    [Description("Gets the name of file name.")]
+    [return: Description("File name currently open or an empty string if not found.")]
+    public string GetCurrentFileNameFromWindow(int processId)
+    {
+        AnsiConsole.MarkupLine($"[blue]Tracing: using processId: {processId}[/]");
+        var mainWindowTitle = GetWindowTitleById(processId);
+        var splittedTitle = mainWindowTitle.Split('-');
+
+        if (splittedTitle.Length >= 2)
+        {
+            string fileName = splittedTitle[0].Trim();
+            AnsiConsole.MarkupLine("[green]Extracted file name:[/] {0}", fileName.EscapeMarkup());
+            return fileName;
+        }
+
+        AnsiConsole.MarkupLine("[red]Not able to extract file name from [0] process id.[/]", processId);
         return string.Empty;
     }
 
@@ -72,7 +88,6 @@ internal sealed class ExternalProcessPlugin(string processName, int processId = 
         return windowTitle;
     }
 
-    [KernelFunction("get_focused_window_title")]
     [Description("Gets the title of the currently focused window.")]
     [return: Description("Title of the currently focused window or an empty string if not found.")]
     public string GetFocusedWindowTitle()
