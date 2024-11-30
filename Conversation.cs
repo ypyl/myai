@@ -4,7 +4,7 @@ using MyAi.Tools;
 
 namespace MyAi;
 
-public class Conversation(IChatClient chatClient, PromptBuilder promptBuilder)
+public class Conversation(PromptBuilder promptBuilder, IChatClient chatClient)
 {
     private readonly List<ChatMessage> _chatHistory = [];
 

@@ -17,7 +17,7 @@ var serviceCollection = new ServiceCollection();
 serviceCollection.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Trace));
 serviceCollection.AddScoped<PromptBuilder>();
 serviceCollection.AddScoped<GenerateCode>();
-serviceCollection.AddScoped<Conversation>();
+serviceCollection.AddTransient<Conversation>();
 serviceCollection.AddScoped<ExternalProcess>();
 serviceCollection.AddScoped<ExternalContext>();
 serviceCollection.AddScoped<FileFinder>();

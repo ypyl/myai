@@ -6,7 +6,7 @@ using Spectre.Console;
 namespace MyAi.Code;
 
 public class GenerateCode(ExternalProcess externalProcess, FileFinder fileFinder, IConfiguration configuration, WorkingDirectory workingDirectory,
-    ExternalTypesFromInstructionContext externalTypesFromInstructionContext, ExternalContext externalContext, Conversation conversation)
+    ExternalTypesFromInstructionContext externalTypesFromInstructionContext, ExternalContext externalContext, Conversation conversation, FileIO fileIO)
 {
     enum CodeLanguage
     {
@@ -121,7 +121,7 @@ public class GenerateCode(ExternalProcess externalProcess, FileFinder fileFinder
 
         var codeOnly = answer[Prefix.Length..^Postfix.Length];
 
-        await new FileIO().WriteAsync(targetFilePath, codeOnly);
+        await fileIO.WriteAsync(targetFilePath, codeOnly);
         return true;
     }
 
