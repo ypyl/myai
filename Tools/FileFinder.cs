@@ -1,12 +1,10 @@
-﻿using System.ComponentModel;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Spectre.Console;
 
-[Description("Plugin to find all C# files in a directory.")]
-internal sealed class FileFinder(ILogger<FileFinder> logger)
+namespace MyAi.Tools;
+
+public sealed class FileFinder(ILogger<FileFinder> logger)
 {
-    [Description("Finds all .cs files in the specified folder and returns a dictionary with file names (without extension) as keys and full paths as values, ignoring files in 'obj' and 'bin' folders, and those ending with '.Design.cs'.")]
-    [return: Description("Dictionary with file names as keys and full paths as values")]
     public Dictionary<string, string> FindCsFiles(string dir)
     {
         if (string.IsNullOrWhiteSpace(dir))
@@ -48,8 +46,6 @@ internal sealed class FileFinder(ILogger<FileFinder> logger)
         });
     }
 
-    [Description("Finds all .ts files in the specified folder and returns a dictionary with file names (without extension) as keys and full paths as values, ignoring files in 'obj' and 'bin' folders, and those ending with '.Design.ts'.")]
-    [return: Description("Dictionary with file names as keys and full paths as values")]
     public Dictionary<string, string> FindTsFiles(string dir)
     {
         if (string.IsNullOrWhiteSpace(dir))
@@ -92,8 +88,6 @@ internal sealed class FileFinder(ILogger<FileFinder> logger)
         });
     }
 
-    [Description("Finds all .csproj files in the specified folder and returns a dictionary with file names (without extension) as keys and full paths as values.")]
-    [return: Description("Dictionary with file names as keys and full paths as values")]
     public Dictionary<string, string> FindCsprojFiles(string dir)
     {
         if (string.IsNullOrWhiteSpace(dir))
@@ -132,8 +126,6 @@ internal sealed class FileFinder(ILogger<FileFinder> logger)
         });
     }
 
-    [Description("Finds all .json files in the specified folder and returns a dictionary with file names (without extension) as keys and full paths as values.")]
-    [return: Description("Dictionary with file names as keys and full paths as values")]
     public Dictionary<string, string> FindJsonFiles(string workingDir)
     {
         if (string.IsNullOrWhiteSpace(workingDir))
@@ -172,8 +164,6 @@ internal sealed class FileFinder(ILogger<FileFinder> logger)
         });
     }
 
-    [Description("Finds the closest .csproj file to the current directory.")]
-    [return: Description("Path to the closest .csproj file or null if not found")]
     public string? FindClosestCsprojFile(string workingDir)
     {
         string currentDir = workingDir;

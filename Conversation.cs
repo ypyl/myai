@@ -1,34 +1,27 @@
-
-
+using System.Collections.ObjectModel;
 using Microsoft.Extensions.AI;
-using Serilog;
-using Spectre.Console;
+using MyAi.Tools;
 
-internal sealed class Conversation(string systemPrompt, IChatCompletionService chatCompletionService, ILogger logger)
+namespace MyAi;
+
+public class Conversation(IChatClient chatClient, PromptBuilder promptBuilder)
 {
     private readonly List<ChatMessage> _chatHistory = [];
 
-    public void AddSystemMessage(string message)
-    {
-        _chatHistory.Add(new ChatMessage(ChatRole.System, message));
-    }
+    public ReadOnlyCollection<ChatMessage> ChatHistory => _chatHistory.AsReadOnly();
 
-    public async Task<string> Say(string message)
-    {
-        _chatHistory.AddUserMessage(message);
-        MessageOutputAsync(_chatHistory);
-        var reply = await AnsiConsole.Status().StartAsync("Waiting model answer...", async ctx =>
-        {
-            return await chatCompletionService.GetChatMessageContentAsync(_chatHistory);
-        });
-        _chatHistory.Add(reply);
-        MessageOutputAsync(_chatHistory);
-        return reply.ToString();
-    }
+    public void AddMessage(ChatMessage message) => _chatHistory.Add(message);
 
-    private void MessageOutputAsync(ChatHistory chatHistory)
+    public void AddMessage(ChatRole role, string text) => _chatHistory.Add(new(role, text));
+    public void AddMessage(ChatRole role, string prompt, params string[] parameters) =>
+        _chatHistory.Add(new(role, promptBuilder.CreatePrompt(prompt, parameters)));
+
+    public string? LLMResponse => _chatHistory.Last().Text;
+
+    public async Task<ChatMessage> CompleteAsync()
     {
-        var message = chatHistory.Last();
-        logger.Verbose($"{message.Role}: {message.Content}");
+        var response = await chatClient.CompleteAsync(_chatHistory);
+        _chatHistory.Add(response.Message);
+        return response.Message;
     }
 }

@@ -4,11 +4,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Spectre.Console;
 
-[Description("Plugin to interact with external processes.")]
-internal sealed class ExternalProcess()
+namespace MyAi.Tools;
+
+public class ExternalProcess()
 {
-    [Description("Gets the name of file name.")]
-    [return: Description("File name currently open or an empty string if not found.")]
     public string GetCurrentFileNameFromWindow(string processName)
     {
         AnsiConsole.MarkupLine($"[blue]Tracing: using processName: {processName}[/]");
@@ -26,8 +25,21 @@ internal sealed class ExternalProcess()
         return string.Empty;
     }
 
-    [Description("Gets the name of file name.")]
-    [return: Description("File name currently open or an empty string if not found.")]
+    public string? GetFileName(string windowTitle)
+    {
+        var splittedTitle = windowTitle.Split('-');
+
+        if (splittedTitle.Length >= 2)
+        {
+            string fileName = splittedTitle[0].Trim();
+            AnsiConsole.MarkupLine("[green]Extracted file name:[/] {0}", fileName.EscapeMarkup());
+            return fileName;
+        }
+
+        AnsiConsole.MarkupLine("[red]Not able to extract file name from [0] window title.[/]", windowTitle);
+        return null;
+    }
+
     public string GetCurrentFileNameFromWindow(int processId)
     {
         AnsiConsole.MarkupLine($"[blue]Tracing: using processId: {processId}[/]");
@@ -88,8 +100,6 @@ internal sealed class ExternalProcess()
         return windowTitle;
     }
 
-    [Description("Gets the title of the currently focused window.")]
-    [return: Description("Title of the currently focused window or an empty string if not found.")]
     public string GetFocusedWindowTitle()
     {
         IntPtr hWnd = GetForegroundWindow(); // Get the handle of the currently focused window
