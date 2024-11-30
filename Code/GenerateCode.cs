@@ -86,20 +86,16 @@ public class GenerateCode(ExternalProcess externalProcess, FileFinder fileFinder
             conversation.AddMessage(ChatRole.User, codeOptions.AdditionalPrompt, additionalContext);
         }
 
-        await conversation.CompleteAsync();
-        var result = await RetrieveCodeFragment(conversation, targetFilePath, codeOptions.RegeneratePrompt);
-        if (!result) return false;
-
-        var userComment = AnsiConsole.Prompt(new TextPrompt<string>("[green]Anything to fix?[/]").AllowEmpty());
-
-        while (!string.IsNullOrEmpty(userComment))
+        string? userComment;
+        do
         {
-            conversation.AddMessage(ChatRole.User, userComment);
             await conversation.CompleteAsync();
-            result = await RetrieveCodeFragment(conversation, targetFilePath, codeOptions.RegeneratePrompt);
+            var result = await RetrieveCodeFragment(conversation, targetFilePath, codeOptions.RegeneratePrompt);
             if (!result) return false;
             userComment = AnsiConsole.Prompt(new TextPrompt<string>("[green]Anything to fix?[/]").AllowEmpty());
+            conversation.AddMessage(ChatRole.User, userComment);
         }
+        while (!string.IsNullOrEmpty(userComment));
 
         return true;
     }
