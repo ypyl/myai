@@ -7,6 +7,8 @@ using Spectre.Console.Cli;
 using MyAi.Tools;
 using MyAi.Code;
 using MyAi;
+using Azure.AI.OpenAI;
+using OpenAI;
 
 var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
@@ -31,11 +33,19 @@ serviceCollection.AddScoped<WorkingDirectory>();
 serviceCollection.AddScoped<IConfiguration>(provider => configuration);
 serviceCollection.Configure<AddLoggingOptions>(configuration);
 
+var openAILink = Environment.GetEnvironmentVariable("MYAI_URI");
+var openAIKey = Environment.GetEnvironmentVariable("MYAI_KEY");
+var openAIModel = Environment.GetEnvironmentVariable("MYAI_MODEL");
+
+var chatClient = openAILink is not null && openAIKey is not null && openAIModel is not null
+    ? new AzureOpenAIClient(new Uri(openAILink), new System.ClientModel.ApiKeyCredential(openAIKey)).AsChatClient(openAIModel)
+    : new OllamaChatClient(new Uri("http://localhost:11434/"), "llama3.2");
+
 serviceCollection.AddChatClient(services =>
-    new ChatClientBuilder(new OllamaChatClient(new Uri("http://localhost:11434/"), "llama3.2"))
-    .UseLogging(services.GetRequiredService<ILoggerFactory>())
-    .UseFunctionInvocation()
-    .Build());
+    new ChatClientBuilder(chatClient)
+        .UseLogging(services.GetRequiredService<ILoggerFactory>())
+        .UseFunctionInvocation()
+        .Build());
 
 var registrar = new TypeRegistrar(serviceCollection);
 
