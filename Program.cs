@@ -26,6 +26,7 @@ serviceCollection.AddScoped<CsNonStandardTypeExtractorPlugin>();
 serviceCollection.AddScoped<ExternalTypesFromInstructionContext>();
 serviceCollection.AddScoped<TsNonStandardModuleExtractorPlugin>();
 serviceCollection.AddScoped<FileIO>();
+serviceCollection.AddScoped<AutoFixLlmAnswer>();
 serviceCollection.AddScoped<WorkingDirectory>();
 serviceCollection.AddScoped<IConfiguration>(provider => configuration);
 serviceCollection.Configure<AddLoggingOptions>(configuration);

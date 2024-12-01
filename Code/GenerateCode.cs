@@ -6,7 +6,8 @@ using Spectre.Console;
 namespace MyAi.Code;
 
 public class GenerateCode(ExternalProcess externalProcess, FileFinder fileFinder, IConfiguration configuration, WorkingDirectory workingDirectory,
-    ExternalTypesFromInstructionContext externalTypesFromInstructionContext, ExternalContext externalContext, Conversation conversation, FileIO fileIO)
+    ExternalTypesFromInstructionContext externalTypesFromInstructionContext, ExternalContext externalContext, Conversation conversation, FileIO fileIO,
+    AutoFixLlmAnswer autoFixLlmAnswer)
 {
     enum CodeLanguage
     {
@@ -90,34 +91,16 @@ public class GenerateCode(ExternalProcess externalProcess, FileFinder fileFinder
         do
         {
             await conversation.CompleteAsync();
-            var result = await RetrieveCodeFragment(conversation, targetFilePath, codeOptions.RegeneratePrompt);
-            if (!result) return false;
+            var answer = await autoFixLlmAnswer.RetrieveCodeFragment(conversation, IsCodeOnly, codeOptions.RegeneratePrompt);
+            if (answer is null) return false;
+            var codeOnly = answer[Prefix.Length..^Postfix.Length];
+
+            await fileIO.WriteAsync(targetFilePath, codeOnly);
             userComment = AnsiConsole.Prompt(new TextPrompt<string>("[green]Anything to fix?[/]").AllowEmpty());
             conversation.AddMessage(ChatRole.User, userComment);
         }
         while (!string.IsNullOrEmpty(userComment));
 
-        return true;
-    }
-
-    private async Task<bool> RetrieveCodeFragment(Conversation conversation, string targetFilePath, string regeneratePrompt)
-    {
-        var maxAttemtp = 3;
-        var answer = conversation.LLMResponse ?? string.Empty;
-
-        while (!IsCodeOnly(answer) && maxAttemtp-- > 0)
-        {
-            conversation.AddMessage(ChatRole.User, regeneratePrompt);
-            await conversation.CompleteAsync();
-
-            answer = conversation.LLMResponse ?? string.Empty;
-        }
-
-        if (maxAttemtp == 0) return false;
-
-        var codeOnly = answer[Prefix.Length..^Postfix.Length];
-
-        await fileIO.WriteAsync(targetFilePath, codeOnly);
         return true;
     }
 
