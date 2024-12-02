@@ -1,12 +1,10 @@
-﻿using System.ComponentModel;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using Spectre.Console;
 
-[Description("Plugin to extract non-standard modules from Typescript code.")]
-internal sealed class TsNonStandardModuleExtractorPlugin
+namespace MyAi.Tools;
+
+public sealed class TsNonStandardModuleExtractorPlugin
 {
-    [Description("Extracts non-standard modules from the provided Typescript code string.")]
-    [return: Description("List of non-standard module names used in the provided Typescript code.")]
     public List<string> ExtractNonStandardModules(string code)
     {
         if (string.IsNullOrWhiteSpace(code))

@@ -1,6 +1,8 @@
 using Spectre.Console;
 
-public class ExternalContext(FileIO fileIO)
+namespace MyAi.Tools;
+
+public class ExternalContext(FileIO fileIO, CsNonStandardTypeExtractorPlugin csNonStandardTypeExtractorPlugin, TsNonStandardModuleExtractorPlugin tsNonStandardModuleExtractorPlugin)
 {
     public async Task<List<string>> GetFiles(IDictionary<string, string> allFiles, string targetFile)
     {
@@ -8,9 +10,9 @@ public class ExternalContext(FileIO fileIO)
 
         var externalTypes = Path.GetExtension(targetFile) switch
         {
-            ".cs" => new CsNonStandardTypeExtractorPlugin().ExtractNonStandardTypes(targetFile),
-            ".ts" => new TsNonStandardModuleExtractorPlugin().ExtractNonStandardModules(targetFile),
-            ".tsx" => new TsNonStandardModuleExtractorPlugin().ExtractNonStandardModules(targetFile),
+            ".cs" => csNonStandardTypeExtractorPlugin.ExtractNonStandardTypes(targetFile),
+            ".ts" => tsNonStandardModuleExtractorPlugin.ExtractNonStandardModules(targetFile),
+            ".tsx" => tsNonStandardModuleExtractorPlugin.ExtractNonStandardModules(targetFile),
             _ => []
         };
         var result = new List<string>();

@@ -1,13 +1,11 @@
-using System.ComponentModel;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Spectre.Console;
 
-[Description("Plugin to extract non-standard types from C# code.")]
-internal sealed class CsNonStandardTypeExtractorPlugin
+namespace MyAi.Tools;
+
+public sealed class CsNonStandardTypeExtractorPlugin
 {
-    [Description("Extracts non-standard types from the provided C# code string.")]
-    [return: Description("List of non-standard type names used in the provided C# code.")]
     public List<string> ExtractNonStandardTypes(string code)
     {
         if (string.IsNullOrWhiteSpace(code))
