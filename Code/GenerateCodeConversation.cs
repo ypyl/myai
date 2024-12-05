@@ -4,8 +4,8 @@ using Spectre.Console;
 
 namespace MyAi.Code;
 
-public class GenerateCode(ExternalProcess externalProcess, VSCode VSCode, CodeTools codeTools, WorkingDirectory workingDirectory,
-    ExternalTypesFromInstructionContext externalTypesFromInstructionContext, Conversation conversation, FileIO fileIO,
+public class GenerateCodeConversation(ExternalProcess externalProcess, VSCode VSCode, CodeTools codeTools, WorkingDirectory workingDirectory,
+    ExternalTypesFromInstructionsConversation externalTypesFromInstructionContext, Conversation conversation, FileIO fileIO,
     AutoFixLlmAnswer autoFixLlmAnswer, DirectoryPacker directoryPacker)
 {
     const string Prefix = "```csharp";

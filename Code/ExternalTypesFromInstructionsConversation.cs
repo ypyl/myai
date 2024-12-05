@@ -3,7 +3,7 @@ using Spectre.Console;
 
 namespace MyAi.Code;
 
-public class ExternalTypesFromInstructionContext(Conversation conversation)
+public class ExternalTypesFromInstructionsConversation(Conversation conversation)
 {
     public async Task<List<string>> Extract(string typesFromInstructionsPrompt, IDictionary<string, string> allFiles, string targetFileContent)
     {
