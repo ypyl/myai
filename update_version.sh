@@ -1,12 +1,12 @@
 csprojFile="myai.csproj"
-versionNode=$(xmlstarlet sel -t -v "//Project/PropertyGroup/Version" "$csprojFile")
+versionLine=$(grep -oPm1 "(?<=<Version>)[^<]+" "$csprojFile")
 
-if [ -z "$versionNode" ]; then
+if [ -z "$versionLine" ]; then
     echo "Version node not found in the project file" >&2
     exit 1
 fi
 
-version="$versionNode"
+version="$versionLine"
 if [ -z "$version" ]; then
     echo "Version text not found in the version node." >&2
     exit 1
@@ -21,5 +21,5 @@ fi
 versionParts[2]=$((versionParts[2] + 1))
 
 newVersion="${versionParts[0]}.${versionParts[1]}.${versionParts[2]}"
-xmlstarlet ed -L -u "//Project/PropertyGroup/Version" -v "$newVersion" "$csprojFile"
+sed -i "s/<Version>$version<\/Version>/<Version>$newVersion<\/Version>/" "$csprojFile"
 exit 0
