@@ -21,3 +21,4 @@ $versionParts[2] = [int]$versionParts[2] + 1
 $newVersion = "$($versionParts[0]).$($versionParts[1]).$($versionParts[2])"
 $xml.Project.PropertyGroup.Version = $newVersion
 $xml.Save($csprojFile)
+exit 0
