@@ -41,38 +41,28 @@ public sealed class FileFinder(ILogger<FileFinder> logger)
     {
         if (string.IsNullOrWhiteSpace(dir))
         {
-            AnsiConsole.MarkupLine("[red]Error: Folder path cannot be null or empty.[/]");
-            return new Dictionary<string, string>();
+            throw new ArgumentException("Folder path cannot be null or empty.", nameof(dir));
         }
 
         if (!Directory.Exists(dir))
         {
-            AnsiConsole.MarkupLine("[red]Error: The specified folder path does not exist: {0}[/]", dir.EscapeMarkup());
-            return new Dictionary<string, string>();
+            throw new DirectoryNotFoundException($"The specified folder path does not exist: {dir}");
         }
 
-        return AnsiConsole.Status().Start($"Searching for {searchPattern} files...", ctx =>
+        var filesDictionary = new Dictionary<string, string>();
+        var files = Directory.GetFiles(dir, searchPattern, SearchOption.AllDirectories)
+            .Where(file => (excludeDirs == null || !excludeDirs.Any(excludeDir => file.Contains(Path.DirectorySeparatorChar + excludeDir + Path.DirectorySeparatorChar))) &&
+                            (excludeSuffix == null || !file.EndsWith(excludeSuffix, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+
+        foreach (var file in files)
         {
-            var filesDictionary = new Dictionary<string, string>();
-            var files = Directory.GetFiles(dir, searchPattern, SearchOption.AllDirectories)
-                .Where(file => (excludeDirs == null || !excludeDirs.Any(excludeDir => file.Contains(Path.DirectorySeparatorChar + excludeDir + Path.DirectorySeparatorChar))) &&
-                               (excludeSuffix == null || !file.EndsWith(excludeSuffix, StringComparison.OrdinalIgnoreCase)))
-                .ToList();
+            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
+            filesDictionary[fileNameWithoutExtension] = file;
 
-            if (files.Count == 0)
-            {
-                AnsiConsole.MarkupLine($"[yellow]No {searchPattern} files found in the specified folder.[/]");
-            }
+            logger.LogTrace("Found: {fileNameWithoutExtension} -> {file}", fileNameWithoutExtension, file);
+        }
 
-            foreach (var file in files)
-            {
-                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
-                filesDictionary[fileNameWithoutExtension] = file;
-
-                logger.LogTrace("Found: {fileNameWithoutExtension} -> {file}", fileNameWithoutExtension, file);
-            }
-
-            return filesDictionary;
-        });
+        return filesDictionary;
     }
 }

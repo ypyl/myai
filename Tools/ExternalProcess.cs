@@ -73,13 +73,10 @@ public class ExternalProcess()
 
         if (process is null)
         {
-            AnsiConsole.MarkupLine("[red]Not able to find any process with the id:[/] {0}", processId);
             return string.Empty;
         }
 
         string windowTitle = process.MainWindowTitle;
-
-        AnsiConsole.MarkupLine("[green]Process found with title:[/] {0}", windowTitle.EscapeMarkup());
 
         return windowTitle;
     }
@@ -89,20 +86,16 @@ public class ExternalProcess()
         IntPtr hWnd = GetForegroundWindow(); // Get the handle of the currently focused window
         if (hWnd == IntPtr.Zero)
         {
-            AnsiConsole.MarkupLine("[red]No window is currently focused.[/]");
-            return string.Empty;
+            throw new InvalidOperationException("No window is currently focused.");
         }
 
-        StringBuilder windowText = new StringBuilder(256);
+        StringBuilder windowText = new(256);
         if (GetWindowText(hWnd, windowText, windowText.Capacity) > 0)
         {
-            string title = windowText.ToString();
-            AnsiConsole.MarkupLine("[green]Focused window title:[/] {0}", title.EscapeMarkup());
-            return title;
+            return windowText.ToString();
         }
 
-        AnsiConsole.MarkupLine("[red]Unable to retrieve the title of the focused window.[/]");
-        return string.Empty;
+        throw new InvalidOperationException("Unable to retrieve the window title.");
     }
 
     // WinAPI functions

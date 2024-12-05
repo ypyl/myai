@@ -4,17 +4,12 @@ using Spectre.Console;
 
 public sealed class FileIO
 {
-    [Description("Read a file")]
-    public async Task<string> ReadAsync([Description("Source file")] string path)
+    public async Task<string> ReadAsync(string path)
     {
-        AnsiConsole.MarkupLine("[green]Reading content of file:[/] [navy]{0}[/]", path);
         return await File.ReadAllTextAsync(path);
     }
 
-    [Description("Write a file")]
-    public async Task WriteAsync(
-        [Description("Destination file")] string path,
-        [Description("File content")] string content)
+    public async Task WriteAsync(string path, string content)
     {
         var fileEndoding = GetEncoding(path);
         var fileEol = await DetectEOL(path);

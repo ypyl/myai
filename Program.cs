@@ -20,7 +20,7 @@ serviceCollection.AddScoped<PromptBuilder>();
 serviceCollection.AddScoped<GenerateCode>();
 serviceCollection.AddTransient<Conversation>();
 serviceCollection.AddScoped<ExternalProcess>();
-serviceCollection.AddScoped<ExternalContext>();
+serviceCollection.AddScoped<CodeTools>();
 serviceCollection.AddScoped<DirectoryPacker>();
 serviceCollection.AddScoped<FileFinder>();
 serviceCollection.AddScoped<GenerateCode>();

@@ -1,67 +1,26 @@
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Configuration;
 using MyAi.Tools;
 using Spectre.Console;
 
 namespace MyAi.Code;
 
-public class GenerateCode(ExternalProcess externalProcess, VSCode VSCode, FileFinder fileFinder, IConfiguration configuration, WorkingDirectory workingDirectory,
-    ExternalTypesFromInstructionContext externalTypesFromInstructionContext, ExternalContext externalContext, Conversation conversation, FileIO fileIO,
+public class GenerateCode(ExternalProcess externalProcess, VSCode VSCode, CodeTools codeTools, WorkingDirectory workingDirectory,
+    ExternalTypesFromInstructionContext externalTypesFromInstructionContext, Conversation conversation, FileIO fileIO,
     AutoFixLlmAnswer autoFixLlmAnswer, DirectoryPacker directoryPacker)
 {
-    enum CodeLanguage
-    {
-        CSharp,
-        Typescript,
-    }
-
-    private static CodeLanguage GetCodeLanguage(string filePath)
-    {
-        return Path.GetExtension(filePath) switch
-        {
-            ".cs" => CodeLanguage.CSharp,
-            ".ts" => CodeLanguage.Typescript,
-            ".tsx" => CodeLanguage.Typescript,
-            _ => throw new NotSupportedException(),
-        };
-    }
-
-    private CodeOptions? GetCodeOptions(CodeLanguage language)
-    {
-        var sectionName = Enum.GetName(language);
-        if (sectionName is null)
-        {
-            return null;
-        }
-        return configuration.GetRequiredSection("Code").GetRequiredSection(sectionName).Get<CodeOptions>();
-    }
-
     const string Prefix = "```csharp";
     const string Postfix = "```";
 
     public async Task<bool> Run()
     {
         var targetWindowTitle = externalProcess.GetFocusedWindowTitle();
-        if (VSCode.IsValidVSCodeWindowTitle(targetWindowTitle))
-        {
-            AnsiConsole.MarkupLine("[red]Not a valid Visual Studio Code window title.[/]");
-            return false;
-        }
+        AnsiConsole.MarkupLine("[green]Focused window title:[/] {0}", targetWindowTitle.EscapeMarkup());
         var targetFileName = VSCode.ParseWindowTitle(targetWindowTitle);
         var workingDir = workingDirectory.GetWorkingDirectory();
-        var codeLangugage = GetCodeLanguage(targetFileName);
-        var codeOptions = GetCodeOptions(codeLangugage);
-        if (codeOptions is null)
-        {
-            AnsiConsole.MarkupLine("[red]Not able to find code options for {0} language.[/]", codeLangugage);
-            return false;
-        }
-        var allFiles = codeLangugage switch
-        {
-            CodeLanguage.CSharp => fileFinder.FindCsFiles(workingDir),
-            CodeLanguage.Typescript => fileFinder.FindTsFiles(workingDir),
-            _ => throw new NotSupportedException(),
-        };
+        AnsiConsole.MarkupLine("[blue]Working directory:[/] {0}", workingDir.EscapeMarkup());
+        var codeLangugage = codeTools.GetCodeLanguage(targetFileName);
+        var codeOptions = codeTools.GetCodeOptions(codeLangugage);
+        var allFiles = codeTools.FindFilesByLanguage(workingDir, codeLangugage);
         if (!allFiles.TryGetValue(Path.GetFileNameWithoutExtension(targetFileName), out var targetFilePath))
         {
             AnsiConsole.MarkupLine("[red]Not able to find {0} in workding directory.[/]", targetFileName);
@@ -70,9 +29,12 @@ public class GenerateCode(ExternalProcess externalProcess, VSCode VSCode, FileFi
 
         var fileContent = directoryPacker.PackFiles([targetFilePath]);
 
-        var additionalFromInstruction = await externalTypesFromInstructionContext.Extract(codeOptions, allFiles, fileContent);
+        var additionalFromInstruction = await externalTypesFromInstructionContext.Extract(codeOptions.TypesFromInstructionsPrompt, allFiles, fileContent);
 
-        var additionalFromFile = await externalContext.GetFiles(allFiles, fileContent);
+        AnsiConsole.MarkupLine("[fuchsia]Extracting external types from the target code.[/]");
+        var externalTypes = codeTools.GetExternalTypes(codeLangugage, fileContent);
+        AnsiConsole.MarkupLine("[fuchsia]Getting content of external type files.[/]");
+        var additionalFromFile = await codeTools.GetContentOfExternalTypes(allFiles, externalTypes);
 
         List<string> additionalFileContents = [.. additionalFromInstruction, .. additionalFromFile];
         var filtered = additionalFileContents.Distinct();
@@ -81,11 +43,7 @@ public class GenerateCode(ExternalProcess externalProcess, VSCode VSCode, FileFi
 
         conversation.AddMessage(ChatRole.System, codeOptions.SystemPrompt);
         conversation.AddMessage(ChatRole.User, codeOptions.InputPrompt, fileContent);
-
-        if (!string.IsNullOrWhiteSpace(additionalContext))
-        {
-            conversation.AddMessage(ChatRole.User, codeOptions.AdditionalPrompt, additionalContext);
-        }
+        conversation.AddMessage(ChatRole.User, codeOptions.AdditionalPrompt, additionalContext);
 
         string? userComment;
         do

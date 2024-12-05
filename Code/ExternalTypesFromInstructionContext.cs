@@ -5,10 +5,10 @@ namespace MyAi.Code;
 
 public class ExternalTypesFromInstructionContext(Conversation conversation)
 {
-    public async Task<List<string>> Extract(CodeOptions codeOptions, IDictionary<string, string> allFiles, string targetFileContent)
+    public async Task<List<string>> Extract(string typesFromInstructionsPrompt, IDictionary<string, string> allFiles, string targetFileContent)
     {
         AnsiConsole.MarkupLine("[fuchsia]Getting external types from instructions.[/]");
-        conversation.AddMessage(ChatRole.System, codeOptions.TypesFromInstructionsPrompt, targetFileContent);
+        conversation.AddMessage(ChatRole.System, typesFromInstructionsPrompt, targetFileContent);
 
         await conversation.CompleteAsync();
 

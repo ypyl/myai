@@ -10,21 +10,16 @@ public sealed class CsNonStandardTypeExtractorPlugin
     {
         if (string.IsNullOrWhiteSpace(code))
         {
-            AnsiConsole.MarkupLine("[red]Error: Input code cannot be null or empty.[/]");
             return [];
         }
 
-        // TODO skip errors
-        return AnsiConsole.Status().Start("Searching non standard types...", ctx =>
-        {
-            var tree = CSharpSyntaxTree.ParseText(code);
-            var root = tree.GetCompilationUnitRoot();
+        var tree = CSharpSyntaxTree.ParseText(code);
+        var root = tree.GetCompilationUnitRoot();
 
-            var typeCollector = new TypeCollector();
-            typeCollector.Visit(root);
+        var typeCollector = new TypeCollector();
+        typeCollector.Visit(root);
 
-            return new List<string>(typeCollector.NonStandardTypes);
-        });
+        return [.. typeCollector.NonStandardTypes];
     }
 
     private class TypeCollector : CSharpSyntaxWalker
