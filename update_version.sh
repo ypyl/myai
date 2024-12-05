@@ -1,6 +1,5 @@
-
 csprojFile="myai.csproj"
-versionNode=$(xmllint --xpath "string(//Project/PropertyGroup/Version)" "$csprojFile")
+versionNode=$(xmlstarlet sel -t -v "//Project/PropertyGroup/Version" "$csprojFile")
 
 if [ -z "$versionNode" ]; then
     echo "Version node not found in the project file" >&2
