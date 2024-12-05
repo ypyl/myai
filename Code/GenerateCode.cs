@@ -5,9 +5,9 @@ using Spectre.Console;
 
 namespace MyAi.Code;
 
-public class GenerateCode(ExternalProcess externalProcess, FileFinder fileFinder, IConfiguration configuration, WorkingDirectory workingDirectory,
+public class GenerateCode(ExternalProcess externalProcess, VSCode VSCode, FileFinder fileFinder, IConfiguration configuration, WorkingDirectory workingDirectory,
     ExternalTypesFromInstructionContext externalTypesFromInstructionContext, ExternalContext externalContext, Conversation conversation, FileIO fileIO,
-    AutoFixLlmAnswer autoFixLlmAnswer)
+    AutoFixLlmAnswer autoFixLlmAnswer, DirectoryPacker directoryPacker)
 {
     enum CodeLanguage
     {
@@ -42,12 +42,12 @@ public class GenerateCode(ExternalProcess externalProcess, FileFinder fileFinder
     public async Task<bool> Run()
     {
         var targetWindowTitle = externalProcess.GetFocusedWindowTitle();
-        var targetFileName = externalProcess.GetFileName(targetWindowTitle);
-        if (targetFileName is null)
+        if (VSCode.IsValidVSCodeWindowTitle(targetWindowTitle))
         {
-            AnsiConsole.MarkupLine("[red]Not able to find target file name.[/]");
+            AnsiConsole.MarkupLine("[red]Not a valid Visual Studio Code window title.[/]");
             return false;
         }
+        var targetFileName = VSCode.ParseWindowTitle(targetWindowTitle);
         var workingDir = workingDirectory.GetWorkingDirectory();
         var codeLangugage = GetCodeLanguage(targetFileName);
         var codeOptions = GetCodeOptions(codeLangugage);
@@ -68,7 +68,7 @@ public class GenerateCode(ExternalProcess externalProcess, FileFinder fileFinder
             return false;
         }
 
-        var fileContent = await new FileIO().ReadAsync(targetFilePath);
+        var fileContent = directoryPacker.PackFiles([targetFilePath]);
 
         var additionalFromInstruction = await externalTypesFromInstructionContext.Extract(codeOptions, allFiles, fileContent);
 
@@ -77,7 +77,7 @@ public class GenerateCode(ExternalProcess externalProcess, FileFinder fileFinder
         List<string> additionalFileContents = [.. additionalFromInstruction, .. additionalFromFile];
         var filtered = additionalFileContents.Distinct();
 
-        var additionalContext = string.Join("\n\n", filtered);
+        var additionalContext = directoryPacker.PackFiles([.. filtered]);
 
         conversation.AddMessage(ChatRole.System, codeOptions.SystemPrompt);
         conversation.AddMessage(ChatRole.User, codeOptions.InputPrompt, fileContent);

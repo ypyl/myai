@@ -8,7 +8,6 @@ using MyAi.Tools;
 using MyAi.Code;
 using MyAi;
 using Azure.AI.OpenAI;
-using OpenAI;
 
 var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
@@ -22,12 +21,14 @@ serviceCollection.AddScoped<GenerateCode>();
 serviceCollection.AddTransient<Conversation>();
 serviceCollection.AddScoped<ExternalProcess>();
 serviceCollection.AddScoped<ExternalContext>();
+serviceCollection.AddScoped<DirectoryPacker>();
 serviceCollection.AddScoped<FileFinder>();
 serviceCollection.AddScoped<GenerateCode>();
 serviceCollection.AddScoped<CsNonStandardTypeExtractorPlugin>();
 serviceCollection.AddScoped<ExternalTypesFromInstructionContext>();
 serviceCollection.AddScoped<TsNonStandardModuleExtractorPlugin>();
 serviceCollection.AddScoped<FileIO>();
+serviceCollection.AddScoped<VSCode>();
 serviceCollection.AddScoped<AutoFixLlmAnswer>();
 serviceCollection.AddScoped<WorkingDirectory>();
 serviceCollection.AddScoped<IConfiguration>(provider => configuration);

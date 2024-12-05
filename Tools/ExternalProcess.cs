@@ -24,21 +24,6 @@ public class ExternalProcess()
         return string.Empty;
     }
 
-    public string? GetFileName(string windowTitle)
-    {
-        var splittedTitle = windowTitle.Split('-');
-
-        if (splittedTitle.Length >= 2)
-        {
-            string fileName = splittedTitle[0].Trim();
-            AnsiConsole.MarkupLine("[green]Extracted file name:[/] {0}", fileName.EscapeMarkup());
-            return fileName;
-        }
-
-        AnsiConsole.MarkupLine("[red]Not able to extract file name from [0] window title.[/]", windowTitle);
-        return null;
-    }
-
     public string GetCurrentFileNameFromWindow(int processId)
     {
         AnsiConsole.MarkupLine($"[blue]Tracing: using processId: {processId}[/]");
