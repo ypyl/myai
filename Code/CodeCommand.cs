@@ -4,7 +4,7 @@ using Spectre.Console.Cli;
 
 namespace MyAi.Code;
 
-public sealed class CodeCommand(GenerateCodeConversation codeGenerator) : AsyncCommand<CodeCommand.Settings>
+public sealed class CodeCommand(GenerateCodeAgent codeGenerator) : AsyncCommand<CodeCommand.Settings>
 {
     public sealed class Settings : CommandSettings
     {

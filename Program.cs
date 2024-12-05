@@ -17,15 +17,15 @@ var serviceCollection = new ServiceCollection();
 
 serviceCollection.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Trace));
 serviceCollection.AddScoped<PromptBuilder>();
-serviceCollection.AddScoped<GenerateCodeConversation>();
+serviceCollection.AddScoped<GenerateCodeAgent>();
 serviceCollection.AddTransient<Conversation>();
 serviceCollection.AddScoped<ExternalProcess>();
 serviceCollection.AddScoped<CodeTools>();
 serviceCollection.AddScoped<DirectoryPacker>();
 serviceCollection.AddScoped<FileFinder>();
-serviceCollection.AddScoped<GenerateCodeConversation>();
+serviceCollection.AddScoped<GenerateCodeAgent>();
 serviceCollection.AddScoped<CsNonStandardTypeExtractorPlugin>();
-serviceCollection.AddScoped<ExternalTypesFromInstructionsConversation>();
+serviceCollection.AddScoped<ExternalTypesFromInstructionsAgent>();
 serviceCollection.AddScoped<TsNonStandardModuleExtractorPlugin>();
 serviceCollection.AddScoped<FileIO>();
 serviceCollection.AddScoped<VSCode>();

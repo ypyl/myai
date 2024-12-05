@@ -4,8 +4,8 @@ using Spectre.Console;
 
 namespace MyAi.Code;
 
-public class GenerateCodeConversation(ExternalProcess externalProcess, VSCode VSCode, CodeTools codeTools, WorkingDirectory workingDirectory,
-    ExternalTypesFromInstructionsConversation externalTypesFromInstructionContext, Conversation conversation, FileIO fileIO,
+public class GenerateCodeAgent(ExternalProcess externalProcess, VSCode VSCode, CodeTools codeTools, WorkingDirectory workingDirectory,
+    ExternalTypesFromInstructionsAgent externalTypesFromInstructionsAgent, Conversation conversation, FileIO fileIO,
     AutoFixLlmAnswer autoFixLlmAnswer, DirectoryPacker directoryPacker)
 {
     const string Prefix = "```csharp";
@@ -29,7 +29,7 @@ public class GenerateCodeConversation(ExternalProcess externalProcess, VSCode VS
 
         var fileContent = directoryPacker.PackFiles([targetFilePath]);
 
-        var additionalFromInstruction = await externalTypesFromInstructionContext.Extract(codeOptions.TypesFromInstructionsPrompt, allFiles, fileContent);
+        var additionalFromInstruction = await externalTypesFromInstructionsAgent.Run(codeOptions.TypesFromInstructionsPrompt, allFiles, fileContent);
 
         AnsiConsole.MarkupLine("[fuchsia]Extracting external types from the target code.[/]");
         var externalTypes = codeTools.GetExternalTypes(codeLangugage, fileContent);

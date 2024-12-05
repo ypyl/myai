@@ -3,9 +3,9 @@ using Spectre.Console;
 
 namespace MyAi.Code;
 
-public class ExternalTypesFromInstructionsConversation(Conversation conversation)
+public class ExternalTypesFromInstructionsAgent(Conversation conversation)
 {
-    public async Task<List<string>> Extract(string typesFromInstructionsPrompt, IDictionary<string, string> allFiles, string targetFileContent)
+    public async Task<List<string>> Run(string typesFromInstructionsPrompt, IDictionary<string, string> allFiles, string targetFileContent)
     {
         AnsiConsole.MarkupLine("[fuchsia]Getting external types from instructions.[/]");
         conversation.AddMessage(ChatRole.System, typesFromInstructionsPrompt, targetFileContent);
