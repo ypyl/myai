@@ -1,11 +1,13 @@
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace MyAi.Tools;
 
-public class DirectoryPacker
+public class DirectoryPacker(ILogger logger)
 {
     public string Pack(string path)
     {
+        logger.LogInformation("Starting Pack method for path: {Path}", path);
         var supportedExtensions = new[] { ".cs", ".ts", ".tsx" };
         var repositoryStructure = new StringBuilder();
         var repositoryFiles = new StringBuilder();
@@ -17,6 +19,8 @@ public class DirectoryPacker
         var files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
                              .Where(file => supportedExtensions.Contains(Path.GetExtension(file)))
                              .ToList();
+
+        logger.LogInformation("Found {FileCount} files with supported extensions", files.Count);
 
         var directories = files.Select(Path.GetDirectoryName)
                                .Distinct()
@@ -51,11 +55,13 @@ public class DirectoryPacker
             repositoryFiles.AppendLine();
         }
 
+        logger.LogInformation("Pack method completed for path: {Path}", path);
         return repositoryStructure.ToString() + repositoryFiles.ToString();
     }
 
     public string PackFiles(string[] filePaths)
     {
+        logger.LogInformation("Starting PackFiles method for file paths: {FilePaths}", string.Join(", ", filePaths));
         var repositoryFiles = new StringBuilder();
 
         repositoryFiles.AppendLine("================================================================");
@@ -73,8 +79,13 @@ public class DirectoryPacker
                 repositoryFiles.AppendLine(File.ReadAllText(file));
                 repositoryFiles.AppendLine();
             }
+            else
+            {
+                logger.LogWarning("File not found: {FilePath}", file);
+            }
         }
 
+        logger.LogInformation("PackFiles method completed for file paths: {FilePaths}", string.Join(", ", filePaths));
         return repositoryFiles.ToString();
     }
 }
