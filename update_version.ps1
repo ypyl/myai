@@ -2,7 +2,7 @@ $csprojFile = "myai.csproj"
 [xml]$xml = Get-Content $csprojFile
 $versionNode = $xml.Project.PropertyGroup.Version
 if ($versionNode -eq $null) {
-    Write-Error "Version node not found in the project file"
+    Write-Error "Version node not found in the project file."
     exit 1
 }
 $version = $versionNode
