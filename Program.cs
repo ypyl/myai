@@ -10,7 +10,7 @@ using MyAi;
 using Azure.AI.OpenAI;
 
 var configuration = new ConfigurationBuilder()
-    .AddJsonFile("appsettings.json")
+    .AddYamlFile("appsettings.yml")
     .Build();
 
 var serviceCollection = new ServiceCollection();

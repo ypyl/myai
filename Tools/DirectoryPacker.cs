@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MyAi.Tools;
 
-public class DirectoryPacker(ILogger logger)
+public class DirectoryPacker(ILogger<DirectoryPacker> logger)
 {
     public string Pack(string path)
     {
