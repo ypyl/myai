@@ -55,7 +55,6 @@ public class DirectoryPacker(ILogger<DirectoryPacker> logger)
             repositoryFiles.AppendLine();
         }
 
-        logger.LogInformation("Pack method completed for path: {Path}", path);
         return repositoryStructure.ToString() + repositoryFiles.ToString();
     }
 
@@ -85,7 +84,6 @@ public class DirectoryPacker(ILogger<DirectoryPacker> logger)
             }
         }
 
-        logger.LogInformation("PackFiles method completed for file paths: {FilePaths}", string.Join(", ", filePaths));
         return repositoryFiles.ToString();
     }
 }

@@ -10,12 +10,13 @@ using MyAi;
 using Azure.AI.OpenAI;
 
 var configuration = new ConfigurationBuilder()
-    .AddYamlFile("appsettings.yml")
+    .AddJsonFile("appsettings.json")
+    .AddYamlFile("appsettings.code.csharp.yml", true)
     .Build();
 
 var serviceCollection = new ServiceCollection();
 
-serviceCollection.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Trace));
+serviceCollection.AddLogging(configure => configure.AddConfiguration(configuration.GetSection("Logging")).AddConsole());
 serviceCollection.AddScoped<PromptBuilder>();
 serviceCollection.AddScoped<GenerateCodeAgent>();
 serviceCollection.AddTransient<Conversation>();

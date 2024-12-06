@@ -55,7 +55,6 @@ public class CodeTools(IConfiguration configuration, FileFinder fileFinder, CsNo
 
     public List<string> GetExternalTypes(CodeLanguage codeLanguage, string targetFileContent)
     {
-        logger.LogInformation("Extracting external types for language: {CodeLanguage}", codeLanguage);
         return codeLanguage switch
         {
             CodeLanguage.CSharp => csNonStandardTypeExtractorPlugin.ExtractNonStandardTypes(targetFileContent),
@@ -66,7 +65,6 @@ public class CodeTools(IConfiguration configuration, FileFinder fileFinder, CsNo
 
     public async Task<List<string>> GetContentOfExternalTypes(IDictionary<string, string> allFiles, List<string> externalTypes)
     {
-        logger.LogInformation("Getting content of external types");
         var result = new List<string>();
         foreach (var path in allFiles.Where(x => externalTypes.Contains(x.Key)).Select(x => x.Value))
         {

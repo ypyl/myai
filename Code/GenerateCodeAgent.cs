@@ -1,4 +1,5 @@
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 using MyAi.Tools;
 using Spectre.Console;
 
@@ -6,7 +7,7 @@ namespace MyAi.Code;
 
 public class GenerateCodeAgent(ExternalProcess externalProcess, VSCode VSCode, CodeTools codeTools, WorkingDirectory workingDirectory,
     ExternalTypesFromInstructionsAgent externalTypesFromInstructionsAgent, Conversation conversation, FileIO fileIO,
-    AutoFixLlmAnswer autoFixLlmAnswer, DirectoryPacker directoryPacker)
+    AutoFixLlmAnswer autoFixLlmAnswer, DirectoryPacker directoryPacker, ILogger<GenerateCodeAgent> logger)
 {
     const string Prefix = "```csharp";
     const string Postfix = "```";
@@ -14,32 +15,33 @@ public class GenerateCodeAgent(ExternalProcess externalProcess, VSCode VSCode, C
     public async Task<bool> Run()
     {
         var targetWindowTitle = externalProcess.GetFocusedWindowTitle();
-        AnsiConsole.MarkupLine("[green]Focused window title:[/] {0}", targetWindowTitle.EscapeMarkup());
+        logger.LogInformation("Focused window title: {targetWindowTitle}", targetWindowTitle);
         var targetFileName = VSCode.ParseWindowTitle(targetWindowTitle);
         var workingDir = workingDirectory.GetWorkingDirectory();
-        AnsiConsole.MarkupLine("[blue]Working directory:[/] {0}", workingDir.EscapeMarkup());
+        logger.LogInformation("Working directory: {workingDir}", workingDir);
         var codeLangugage = codeTools.GetCodeLanguage(targetFileName);
         var codeOptions = codeTools.GetCodeOptions(codeLangugage);
         var allFiles = codeTools.FindFilesByLanguage(workingDir, codeLangugage);
         if (!allFiles.TryGetValue(Path.GetFileNameWithoutExtension(targetFileName), out var targetFilePath))
         {
-            AnsiConsole.MarkupLine("[red]Not able to find {0} in workding directory.[/]", targetFileName);
+            logger.LogError("Not able to find {targetFileName} in working directory.", targetFileName);
             return false;
         }
 
-        var fileContent = directoryPacker.PackFiles([targetFilePath]);
+        var fileContent = directoryPacker.PackFiles(new[] { targetFilePath });
 
         var additionalFromInstruction = await externalTypesFromInstructionsAgent.Run(codeOptions.TypesFromInstructionsPrompt, allFiles, fileContent);
 
-        AnsiConsole.MarkupLine("[fuchsia]Extracting external types from the target code.[/]");
+        logger.LogInformation("Extracting external types from the {targetFilePath}.", targetFilePath);
         var externalTypes = codeTools.GetExternalTypes(codeLangugage, fileContent);
-        AnsiConsole.MarkupLine("[fuchsia]Getting content of external type files.[/]");
+        logger.LogInformation("External types: {externalTypes}", string.Join(", ", externalTypes));
+        logger.LogInformation("Getting content of external type files.");
         var additionalFromFile = await codeTools.GetContentOfExternalTypes(allFiles, externalTypes);
 
-        List<string> additionalFileContents = [.. additionalFromInstruction, .. additionalFromFile];
+        List<string> additionalFileContents = [.. additionalFromInstruction.Concat(additionalFromFile)];
         var filtered = additionalFileContents.Distinct();
 
-        var additionalContext = directoryPacker.PackFiles([.. filtered]);
+        var additionalContext = directoryPacker.PackFiles(filtered.ToArray());
 
         conversation.AddMessage(ChatRole.System, codeOptions.SystemPrompt);
         conversation.AddMessage(ChatRole.User, codeOptions.InputPrompt, fileContent);
