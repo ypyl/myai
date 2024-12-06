@@ -1,6 +1,5 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Spectre.Console;
 
 namespace MyAi.Tools;
 

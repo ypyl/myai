@@ -5,7 +5,7 @@ using Spectre.Console;
 
 namespace MyAi.Tools;
 
-public class ExternalProcess()
+public class ExternalProcess
 {
     public string GetCurrentFileNameFromWindow(string processName)
     {

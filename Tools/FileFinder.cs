@@ -3,8 +3,15 @@ using Spectre.Console;
 
 namespace MyAi.Tools;
 
-public sealed class FileFinder(ILogger<FileFinder> logger)
+public sealed class FileFinder
 {
+    private readonly ILogger<FileFinder> _logger;
+
+    public FileFinder(ILogger<FileFinder> logger)
+    {
+        _logger = logger;
+    }
+
     public Dictionary<string, string> FindCsFiles(string dir) => FindFiles(dir, "*.cs", ["obj", "bin"], ".Design.cs");
 
     public Dictionary<string, string> FindTsFiles(string dir)
@@ -60,7 +67,7 @@ public sealed class FileFinder(ILogger<FileFinder> logger)
             var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
             filesDictionary[fileNameWithoutExtension] = file;
 
-            logger.LogTrace("Found: {fileNameWithoutExtension} -> {file}", fileNameWithoutExtension, file);
+            _logger.LogTrace("Found: {fileNameWithoutExtension} -> {file}", fileNameWithoutExtension, file);
         }
 
         return filesDictionary;

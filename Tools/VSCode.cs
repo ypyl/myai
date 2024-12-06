@@ -1,6 +1,14 @@
+using Microsoft.Extensions.Logging;
+
 namespace MyAi.Tools;
 public class VSCode
 {
+    private readonly ILogger<VSCode> _logger;
+
+    public VSCode(ILogger<VSCode> logger)
+    {
+        _logger = logger;
+    }
     private string[] SplitWindowTitle(string windowTitle)
     {
         if (string.IsNullOrEmpty(windowTitle))
@@ -13,6 +21,7 @@ public class VSCode
 
     public string ParseWindowTitle(string windowTitle)
     {
+        _logger.LogInformation("Focused window title: {targetWindowTitle}", windowTitle);
         var parts = SplitWindowTitle(windowTitle);
         if (parts.Length > 0)
         {

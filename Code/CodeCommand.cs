@@ -4,8 +4,14 @@ using Spectre.Console.Cli;
 
 namespace MyAi.Code;
 
-public sealed class CodeCommand(GenerateCodeAgent codeGenerator) : AsyncCommand<CodeCommand.Settings>
+public sealed class CodeCommand : AsyncCommand<CodeCommand.Settings>
 {
+    private readonly GenerateCodeAgent _codeGenerator;
+
+    public CodeCommand(GenerateCodeAgent codeGenerator)
+    {
+        _codeGenerator = codeGenerator;
+    }
     public sealed class Settings : CommandSettings
     {
 
@@ -13,6 +19,6 @@ public sealed class CodeCommand(GenerateCodeAgent codeGenerator) : AsyncCommand<
 
     public override async Task<int> ExecuteAsync([NotNull] CommandContext context, [NotNull] Settings settings)
     {
-        return await codeGenerator.Run() ? 0 : 1;
+        return await _codeGenerator.Run() ? 0 : 1;
     }
 }
