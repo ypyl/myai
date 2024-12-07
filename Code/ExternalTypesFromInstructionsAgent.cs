@@ -1,6 +1,5 @@
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Spectre.Console;
 
 namespace MyAi.Code;
 
@@ -14,7 +13,7 @@ public class ExternalTypesFromInstructionsAgent
         _conversation = conversation;
         _logger = logger;
     }
-    public async Task<List<string>> Run(string typesFromInstructionsPrompt, IDictionary<string, string> allFiles, string targetFileContent)
+    public async Task<List<string>> Run(string typesFromInstructionsPrompt, string targetFileContent)
     {
         _logger.LogInformation("Getting external types from instructions.");
         _conversation.AddMessage(ChatRole.System, typesFromInstructionsPrompt, new { input = targetFileContent });
@@ -22,15 +21,8 @@ public class ExternalTypesFromInstructionsAgent
         await _conversation.CompleteAsync();
 
         var txtAnswer = _conversation.LLMResponse ?? string.Empty;
-        _logger.LogInformation("LLM Response: {txtAnswer}", txtAnswer);
+        _logger.LogInformation("LLM Response: {txtAnswer}", string.IsNullOrWhiteSpace(txtAnswer) ? "EMPTY RESPONSE" : txtAnswer);
         var typesFromInstructions = txtAnswer.Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries);
-        var result = new List<string>();
-        foreach (var path in allFiles.Where(x => typesFromInstructions.Contains(x.Key)).Select(x => x.Value))
-        {
-            var content = await new FileIO().ReadAsync(path);
-            _logger.LogTrace("External context: {path}", path);
-            result.Add(content);
-        }
-        return result;
+        return typesFromInstructions.ToList() ?? [];
     }
 }

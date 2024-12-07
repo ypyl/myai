@@ -82,7 +82,7 @@ public class CodeTools
 
     public async Task<List<string>> GetContentOfExternalTypes(IDictionary<string, string> allFiles, List<string> externalTypes)
     {
-        _logger.LogInformation("Getting content of external type files: {externalTypes}", string.Join(", ", externalTypes));
+        _logger.LogInformation("Getting content of external type files: {externalTypes}", externalTypes.Any() ? string.Join(", ", externalTypes) : "None");
         var result = new List<string>();
         foreach (var path in allFiles.Where(x => externalTypes.Contains(x.Key)).Select(x => x.Value))
         {

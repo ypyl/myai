@@ -1,7 +1,6 @@
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using MyAi.Tools;
-using Spectre.Console;
 
 namespace MyAi.Code;
 
@@ -55,12 +54,12 @@ public class GenerateCodeAgent
 
         var fileContent = _directoryPacker.PackFile(targetFilePath);
 
-        var additionalFromInstruction = await _externalTypesFromInstructionsAgent.Run(codeOptions.TypesFromInstructionsPrompt, allFiles, fileContent);
+        var extractedTypes = await _externalTypesFromInstructionsAgent.Run(codeOptions.TypesFromInstructionsPrompt, fileContent);
         var externalTypes = _codeTools.GetExternalTypes(codeLangugage, fileContent);
+        var extractedTypesContent = await _codeTools.GetContentOfExternalTypes(allFiles, extractedTypes);
+        var externalTypesContent = await _codeTools.GetContentOfExternalTypes(allFiles, externalTypes);
 
-        var additionalFromFile = await _codeTools.GetContentOfExternalTypes(allFiles, externalTypes);
-
-        List<string> additionalFileContents = [.. additionalFromInstruction.Concat(additionalFromFile)];
+        List<string> additionalFileContents = [.. extractedTypesContent.Concat(externalTypesContent)];
         var filtered = additionalFileContents.Distinct();
 
         var additionalContext = _directoryPacker.PackFiles(filtered.ToArray());
