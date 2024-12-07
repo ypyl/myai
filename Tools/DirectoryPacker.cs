@@ -19,9 +19,9 @@ public class DirectoryPacker
         var repositoryStructure = new StringBuilder();
         var repositoryFiles = new StringBuilder();
 
-        repositoryStructure.AppendLine("================================================================");
-        repositoryStructure.AppendLine("Repository Structure");
-        repositoryStructure.AppendLine("================================================================");
+        repositoryStructure.Append("================================================================\n");
+        repositoryStructure.Append("Repository Structure\n");
+        repositoryStructure.Append("================================================================\n");
 
         var files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
                              .Where(file => supportedExtensions.Contains(Path.GetExtension(file)))
@@ -36,7 +36,7 @@ public class DirectoryPacker
         foreach (var dir in directories)
         {
             var relativeDir = Path.GetRelativePath(path, dir).Replace("\\", "/");
-            repositoryStructure.AppendLine(relativeDir + "/");
+            repositoryStructure.Append(relativeDir + "/\n");
 
             var dirFiles = files.Where(file => Path.GetDirectoryName(file) == dir)
                                 .Select(file => Path.GetFileName(file))
@@ -44,22 +44,21 @@ public class DirectoryPacker
 
             foreach (var file in dirFiles)
             {
-                repositoryStructure.AppendLine("  " + file);
+                repositoryStructure.Append("  " + file + "\n");
             }
         }
 
-        repositoryFiles.AppendLine("================================================================");
-        repositoryFiles.AppendLine("Repository Files");
-        repositoryFiles.AppendLine("================================================================");
+        repositoryFiles.Append("================================================================\n");
+        repositoryFiles.Append("Repository Files\n");
+        repositoryFiles.Append("================================================================\n");
 
         foreach (var file in files)
         {
             var relativeFile = Path.GetRelativePath(path, file).Replace("\\", "/");
-            repositoryFiles.AppendLine("================");
-            repositoryFiles.AppendLine($"File: {relativeFile}");
-            repositoryFiles.AppendLine("================");
-            repositoryFiles.AppendLine(File.ReadAllText(file));
-            repositoryFiles.AppendLine();
+            repositoryFiles.Append("================\n");
+            repositoryFiles.Append($"File: {relativeFile}\n");
+            repositoryFiles.Append("================\n");
+            repositoryFiles.Append(File.ReadAllText(file) + "\n\n");
         }
 
         return repositoryStructure.ToString() + repositoryFiles.ToString();
@@ -75,20 +74,19 @@ public class DirectoryPacker
         _logger.LogInformation("Starting PackFiles method for file paths: {FilePaths}", string.Join(", ", filePaths));
         var repositoryFiles = new StringBuilder();
 
-        repositoryFiles.AppendLine("================================================================");
-        repositoryFiles.AppendLine("Repository Files");
-        repositoryFiles.AppendLine("================================================================");
+        repositoryFiles.Append("================================================================\n");
+        repositoryFiles.Append("Repository Files\n");
+        repositoryFiles.Append("================================================================\n");
 
         foreach (var file in filePaths)
         {
             if (File.Exists(file))
             {
                 var relativeFile = Path.GetFileName(file).Replace("\\", "/");
-                repositoryFiles.AppendLine("================");
-                repositoryFiles.AppendLine($"File: {relativeFile}");
-                repositoryFiles.AppendLine("================");
-                repositoryFiles.AppendLine(File.ReadAllText(file));
-                repositoryFiles.AppendLine();
+                repositoryFiles.Append("================\n");
+                repositoryFiles.Append($"File: {relativeFile}\n");
+                repositoryFiles.Append("================\n");
+                repositoryFiles.Append(File.ReadAllText(file) + "\n\n");
             }
             else
             {
@@ -118,11 +116,10 @@ public class DirectoryPacker
         var repositoryFile = new StringBuilder();
 
         var relativeFile = Path.GetFileName(filePath).Replace("\\", "/");
-        repositoryFile.AppendLine("================");
-        repositoryFile.AppendLine($"File: {relativeFile}");
-        repositoryFile.AppendLine("================");
-        repositoryFile.AppendLine(File.ReadAllText(filePath));
-        repositoryFile.AppendLine();
+        repositoryFile.Append("================\n");
+        repositoryFile.Append($"File: {relativeFile}\n");
+        repositoryFile.Append("================\n");
+        repositoryFile.Append(File.ReadAllText(filePath) + "\n\n");
 
         return repositoryFile.ToString();
     }
