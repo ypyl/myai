@@ -8,6 +8,8 @@ using MyAi.Tools;
 using MyAi.Code;
 using MyAi;
 using Azure.AI.OpenAI;
+using Stubble.Core.Builders;
+using Stubble.Core.Interfaces;
 
 var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
@@ -17,6 +19,7 @@ var configuration = new ConfigurationBuilder()
 var serviceCollection = new ServiceCollection();
 
 serviceCollection.AddLogging(configure => configure.AddConfiguration(configuration.GetSection("Logging")).AddConsole());
+serviceCollection.AddScoped<IStubbleRenderer>((provider) => new StubbleBuilder().Build());
 serviceCollection.AddScoped<PromptBuilder>();
 serviceCollection.AddScoped<GenerateCodeAgent>();
 serviceCollection.AddTransient<Conversation>();

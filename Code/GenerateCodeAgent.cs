@@ -38,7 +38,7 @@ public class GenerateCodeAgent
     private readonly DirectoryPacker _directoryPacker;
     private readonly ILogger<GenerateCodeAgent> _logger;
 
-    public async Task<bool> Run()
+    public async Task<bool> Run(string? mainInstruction)
     {
         var targetWindowTitle = _externalProcess.GetFocusedWindowTitle();
 
@@ -53,7 +53,7 @@ public class GenerateCodeAgent
             return false;
         }
 
-        var fileContent = _directoryPacker.PackFiles(new[] { targetFilePath });
+        var fileContent = _directoryPacker.PackFile(targetFilePath);
 
         var additionalFromInstruction = await _externalTypesFromInstructionsAgent.Run(codeOptions.TypesFromInstructionsPrompt, allFiles, fileContent);
         var externalTypes = _codeTools.GetExternalTypes(codeLangugage, fileContent);
@@ -65,23 +65,16 @@ public class GenerateCodeAgent
 
         var additionalContext = _directoryPacker.PackFiles(filtered.ToArray());
 
-        _conversation.AddMessage(ChatRole.System, codeOptions.SystemPrompt);
-        _conversation.AddMessage(ChatRole.User, codeOptions.InputPrompt, fileContent);
-        _conversation.AddMessage(ChatRole.User, codeOptions.AdditionalPrompt, additionalContext);
+        _conversation.AddMessage(ChatRole.System, codeOptions.SystemPrompt, new { mainInstruction, additionalContext, input = fileContent });
+        _conversation.AddMessage(ChatRole.User, codeOptions.UserPrompt);
 
-        string? userComment;
-        do
-        {
-            await _conversation.CompleteAsync();
-            var answer = await _autoFixLlmAnswer.RetrieveCodeFragment(_conversation, IsCodeOnly, codeOptions.RegeneratePrompt);
-            if (answer is null) return false;
-            var codeOnly = answer[Prefix.Length..^Postfix.Length];
+        await _conversation.CompleteAsync();
+        var answer = await _autoFixLlmAnswer.RetrieveCodeFragment(_conversation, IsCodeOnly, codeOptions.RegeneratePrompt);
+        if (answer is null) return false;
 
-            await _fileIO.WriteAsync(targetFilePath, codeOnly);
-            userComment = AnsiConsole.Prompt(new TextPrompt<string>("[green]Anything to fix?[/]").AllowEmpty());
-            _conversation.AddMessage(ChatRole.User, userComment);
-        }
-        while (!string.IsNullOrEmpty(userComment));
+        var codeOnly = answer[Prefix.Length..^Postfix.Length];
+
+        await _fileIO.WriteAsync(targetFilePath, codeOnly);
 
         return true;
     }

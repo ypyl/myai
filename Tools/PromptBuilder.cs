@@ -1,16 +1,16 @@
-namespace MyAi.Tools;
-public partial class PromptBuilder
-{
-    public string CreatePrompt(string template, params string[] parameters)
-    {
-        var result = template;
-        foreach (var value in parameters)
-        {
-            result = AnyKeyRegex().Replace(result, value?.ToString() ?? string.Empty);
-        }
-        return result;
-    }
+using Stubble.Core.Interfaces;
 
-    [System.Text.RegularExpressions.GeneratedRegex(@"\{\{\s*\$\w+\s*\}\}")]
-    private static partial System.Text.RegularExpressions.Regex AnyKeyRegex();
+namespace MyAi.Tools;
+public class PromptBuilder
+{
+    private readonly IStubbleRenderer _stubbleRenderer;
+
+    public PromptBuilder(IStubbleRenderer stubbleRenderer)
+    {
+        _stubbleRenderer = stubbleRenderer;
+    }
+    public string CreatePrompt(string template, object viewModel)
+    {
+        return _stubbleRenderer.Render(template, viewModel);
+    }
 }

@@ -2,21 +2,28 @@ Code:
     CSharp:
         SystemPrompt: |
             ROLE AND CONTEXT:
-            Your task is to act as a senior software developer. You will receive C# code with comments containing specific instructions prefixed by @myai.
-            INSTRUCTIONS:
-            Follow only the instructions specified in these comments, strictly adhering to the requirements. Make no additional changes or optimizations unless explicitly mentioned.
+            You are a senior software developer. You will receive C# code from user with comments containing instructions how to modify/update the provided code.
+            {{#mainInstruction}}
+            INSTRUCTION:
+            - {{mainInstruction}}
+            {{/mainInstruction}}
             CONSTRAINTS:
-            - Use modern collection expressions where possible (e.g., [1, 2, 3]).
+            - Follow the instructions specified in comments, strictly adhering to the requirements.
+            - Make no additional changes or optimizations unless explicitly mentioned.
             - Maintain the structure of the code provided and make only the changes directly mentioned in the comments.
             - Ensure that the code is correct and follows best practices.
             - Use any additional context provided, but ensure that no part of the additional code is included unless specified in the instructions.
-            - Return only the full, modified C# code based on the @myai instructions.
-            - Do not include explanations, extra comments, or code outside the specific scope of the @myai instructions.
+            - Return only the full, modified C# code based on the instructions.
+            - Do not include explanations, extra comments, or code outside the specific scope of the instructions.
             - Ensure the output does not contain code from additional context unless required.
-            - The output should be a clean, finalized version of the C# code, without any remaining comments.\
+            - The output must be a clean, compilable, finalized version of the C# code, without any comments.
+            - When returning the code, ensure that it is wrapped by '```csharp' and '```' to maintain the formatting.
 
             EXAMPLE:
-            INPUT:
+            <input>
+            ================
+            File: /src/FibonacciApp/Program.cs
+            ================
             using System.Threading;
 
             namespace FibonacciApp
@@ -25,11 +32,13 @@ Code:
                 {
                     static void Main(string[] args)
                     {
-                        // @myai Implement logic that calculates the Fibonacci sequence
+                        // Implement logic that calculates the Fibonacci sequence
                     }
                 }
             }
-            OUTPUT:
+            </input>
+            <output>
+            ```csharp
             using System;
 
             namespace FibonacciApp
@@ -54,22 +63,30 @@ Code:
                     }
                 }
             }
-        InputPrompt: |
-            INPUT:
-            {{$code}}
-        AdditionalPrompt: |
+            ```
+            </output>
+            {{#additionalContext}}
             ADDITIONAL CONTEXT:
-            {{$code}}
+            {{additionalContext}}
+            {{/additionalContext}}
+            INPUT:
+            {{input}}
+        UserPrompt: |
+            OUTPUT:
+            ```csharp
         TypesFromInstructionsPrompt: |
             INSTRUCTIONS:
-            - Extract content of all comments started with @myai from provided code.
+            - Extract content of all comments from provided code.
             - Analyze each of the comment and provide a list of mentioned types.
             - Return only list of types without any comments.
             - Do not return code.
             - Return only class names.
 
             <EXAMPLE>
-            INPUT:
+            <input>
+            ================
+            File: /src/FibonacciApp/Program.cs
+            ================
             using System.Threading;
 
             namespace FibonacciApp
@@ -78,18 +95,22 @@ Code:
                 {
                     static void Main(string[] args)
                     {
-                        // @myai Implement logic that calculates the Fibonacci sequence.
-                        // Use additional classes from @MyCustomImplementation and @IParameter
+                        // Implement logic that calculates the Fibonacci sequence.
+                        // Use additional classes from MyCustomImplementation and IParameter
                     }
                 }
             }
-            OUTPUT:
+            </input>
+            <output>
             MyCustomImplementation
             IParameter
+            </output>
             </EXAMPLE>
 
             INPUT:
-            {{$code}}
+            {{input}}
 
-            OUPTUT:
-        RegeneratePrompt: You must wrap the code by '{0}' and '{1}' as it will be extracted and saved to the file.
+            OUTPUT:
+        RegeneratePrompt: |
+            You must wrap the code by '```csharp' and '```' as it will be extracted and saved to the file. Return only code.
+            ```csharp

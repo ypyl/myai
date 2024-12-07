@@ -21,8 +21,8 @@ public class Conversation
     public void AddMessage(ChatMessage message) => _chatHistory.Add(message);
 
     public void AddMessage(ChatRole role, string text) => _chatHistory.Add(new(role, text));
-    public void AddMessage(ChatRole role, string prompt, params string[] parameters) =>
-        _chatHistory.Add(new(role, _promptBuilder.CreatePrompt(prompt, parameters)));
+    public void AddMessage(ChatRole role, string prompt, object viewModel) =>
+        _chatHistory.Add(new(role, _promptBuilder.CreatePrompt(prompt, viewModel)));
 
     public string? LLMResponse => _chatHistory.Last().Text;
 

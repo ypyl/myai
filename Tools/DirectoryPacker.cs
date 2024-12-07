@@ -67,6 +67,11 @@ public class DirectoryPacker
 
     public string PackFiles(string[] filePaths)
     {
+        if (filePaths.Length == 0)
+        {
+            _logger.LogWarning("No file paths provided");
+            return string.Empty;
+        }
         _logger.LogInformation("Starting PackFiles method for file paths: {FilePaths}", string.Join(", ", filePaths));
         var repositoryFiles = new StringBuilder();
 
@@ -92,5 +97,33 @@ public class DirectoryPacker
         }
 
         return repositoryFiles.ToString();
+    }
+
+    public string PackFile(string filePath)
+    {
+        if (string.IsNullOrEmpty(filePath))
+        {
+            _logger.LogWarning("No file path provided");
+            return string.Empty;
+        }
+
+        _logger.LogInformation("Starting PackFile method for file path: {FilePath}", filePath);
+
+        if (!File.Exists(filePath))
+        {
+            _logger.LogWarning("File not found: {FilePath}", filePath);
+            return string.Empty;
+        }
+
+        var repositoryFile = new StringBuilder();
+
+        var relativeFile = Path.GetFileName(filePath).Replace("\\", "/");
+        repositoryFile.AppendLine("================");
+        repositoryFile.AppendLine($"File: {relativeFile}");
+        repositoryFile.AppendLine("================");
+        repositoryFile.AppendLine(File.ReadAllText(filePath));
+        repositoryFile.AppendLine();
+
+        return repositoryFile.ToString();
     }
 }

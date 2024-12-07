@@ -17,7 +17,7 @@ public class ExternalTypesFromInstructionsAgent
     public async Task<List<string>> Run(string typesFromInstructionsPrompt, IDictionary<string, string> allFiles, string targetFileContent)
     {
         _logger.LogInformation("Getting external types from instructions.");
-        _conversation.AddMessage(ChatRole.System, typesFromInstructionsPrompt, targetFileContent);
+        _conversation.AddMessage(ChatRole.System, typesFromInstructionsPrompt, new { input = targetFileContent });
 
         await _conversation.CompleteAsync();
 
