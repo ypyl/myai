@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using MyAi.Tools;
@@ -50,22 +51,22 @@ public class CodeAgent
             return false;
         }
 
-        var fileContent = _directoryPacker.PackFile(targetFilePath);
+        var fileContent = _directoryPacker.GetFileContent(targetFilePath);
 
         var extractedTypes = await _externalTypesFromInstructionsAgent.Run(codeOptions.TypesFromInstructionsPrompt, fileContent);
         var externalTypes = _codeTools.GetExternalTypes(codeLangugage, fileContent);
-        var extractedTypesContent = await _codeTools.GetContentOfExternalTypes(allFiles, extractedTypes);
-        var externalTypesContent = await _codeTools.GetContentOfExternalTypes(allFiles, externalTypes);
+        var extractedTypesPaths = _codeTools.GetExistingPathsOfExternalTypes(allFiles, extractedTypes);
+        var externalTypesPaths = _codeTools.GetExistingPathsOfExternalTypes(allFiles, externalTypes);
 
-        List<string> additionalFileContents = [.. extractedTypesContent.Concat(externalTypesContent)];
+        List<string> additionalFileContents = [.. extractedTypesPaths.Concat(externalTypesPaths)];
         var filtered = additionalFileContents.Distinct();
 
         var additionalContext = _directoryPacker.PackFiles([.. filtered]);
 
-        _conversation.AddMessage(ChatRole.System, codeOptions.SystemPrompt, new { additionalContext, input = fileContent });
-        _conversation.AddMessage(ChatRole.User, codeOptions.UserPrompt, new { mainInstruction });
+        _conversation.AddMessage(ChatRole.System, codeOptions.SystemPrompt);
+        _conversation.AddMessage(ChatRole.User, codeOptions.UserPrompt, new { mainInstruction, additionalContext, input = fileContent });
 
-        await _conversation.CompleteAsync();
+        await _conversation.CompleteAsync([GetExternalTypeImplementation]);
         var answer = await _autoFixLlmAnswer.RetrieveCodeFragment(_conversation, IsCodeOnly, codeOptions.RegeneratePrompt);
         if (answer is null) return false;
 
@@ -76,5 +77,14 @@ public class CodeAgent
         return true;
 
         bool IsCodeOnly(string result) => result.StartsWith(codeOptions.Prefix.Trim()) && result.EndsWith(codeOptions.Postfix.Trim());
+
+        [Description("Get the extrnal type implementation.")]
+        string GetExternalTypeImplementation(string typeName)
+        {
+            return string.Empty;
+            // _logger.LogInformation("Getting external type implementation for {typeName}.", typeName);
+            // var result = await _codeTools.GetContentOfExternalTypes(allFiles, [typeName]);
+            // return result.FirstOrDefault() ?? string.Empty;
+        }
     }
 }

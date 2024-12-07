@@ -84,13 +84,25 @@ public class CodeTools
 
     public async Task<List<string>> GetContentOfExternalTypes(IDictionary<string, string> allFiles, List<string> externalTypes)
     {
-        _logger.LogInformation("Getting content of external type files: {externalTypes}", externalTypes.Any() ? string.Join(", ", externalTypes) : "None");
+        _logger.LogInformation("Getting content of external type files: {externalTypes}", externalTypes.Count != 0 ? string.Join(", ", externalTypes) : "None");
         var result = new List<string>();
         foreach (var path in allFiles.Where(x => externalTypes.Contains(x.Key)).Select(x => x.Value))
         {
             _logger.LogInformation("Reading content from file: {Path}", path);
             var content = await _fileIO.ReadAsync(path);
             result.Add(content);
+        }
+        return result;
+    }
+
+    public List<string> GetExistingPathsOfExternalTypes(IDictionary<string, string> allFiles, List<string> externalTypes)
+    {
+        _logger.LogInformation("Getting content of external type files: {externalTypes}", externalTypes.Count != 0 ? string.Join(", ", externalTypes) : "None");
+        var result = new List<string>();
+        foreach (var path in allFiles.Where(x => externalTypes.Contains(x.Key)).Select(x => x.Value))
+        {
+            _logger.LogInformation("Reading content from file: {Path}", path);
+            result.Add(path);
         }
         return result;
     }

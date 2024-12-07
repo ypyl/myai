@@ -15,7 +15,7 @@ Code:
             - The output must be a clean, compilable, finalized version of the C# code, without any comments.
             - When returning the code, ensure that it is wrapped by '```csharp' and '```' to maintain the formatting.
 
-            EXAMPLE:
+            EXAMPLES:
             <input>
             ================
             File: /src/FibonacciApp/Program.cs
@@ -23,13 +23,12 @@ Code:
             using System.Threading;
 
             namespace FibonacciApp
+
+            class Program
             {
-                class Program
+                static void Main(string[] args)
                 {
-                    static void Main(string[] args)
-                    {
-                        // Implement logic that calculates the Fibonacci sequence
-                    }
+                    // Implement logic that return if the number is even or odd.
                 }
             }
             </input>
@@ -37,67 +36,49 @@ Code:
             ```csharp
             using System;
 
-            namespace FibonacciApp
+            namespace FibonacciApp;
+
+            class Program
             {
-                class Program
+                static void Main(string[] args)
                 {
-                    static void Main(string[] args)
-                    {
-                        int terms = int.Parse(Console.ReadLine());
-
-                        for (int i = 0; i < terms; i++)
-                        {
-                            Console.WriteLine($""Term {i + 1}: {Fibonacci(i)}"");
-                        }
-                    }
-
-                    static int Fibonacci(int n)
-                    {
-                        if (n <= 1)
-                            return n;
-                        return Fibonacci(n - 1) + Fibonacci(n - 2);
-                    }
+                    var number = Convert.ToInt32(Console.ReadLine(());
+                    return number % 2 == 0;
                 }
             }
             ```
             </output>
+        UserPrompt: |
+            {{#mainInstruction}}
+            {{mainInstruction}}
+            {{/mainInstruction}}
             {{#additionalContext}}
             ADDITIONAL CONTEXT:
             {{additionalContext}}
             {{/additionalContext}}
-            INPUT:
+            Provided code:
             {{input}}
-        UserPrompt: |
-            {{#mainInstruction}}
-            INSTRUCTION:
-            - {{mainInstruction}}
-            {{/mainInstruction}}
-            OUTPUT:
             ```csharp
         TypesFromInstructionsPrompt: |
+            ROLE AND CONTEXT:
+            You are a senior software developer. You will receive C# code from user with comments. Your task is provide a list of types mentioned in the comments.
             INSTRUCTIONS:
             - Extract content of all comments from provided code.
             - Analyze each of the comment and provide a list of mentioned types.
-            - Return only list of types without any comments.
+            - Return only list of type names without any comments.
             - Do not return code.
-            - Return only class names.
 
-            <EXAMPLE>
+            <EXAMPLE 1>
             <input>
-            ================
-            File: /src/FibonacciApp/Program.cs
-            ================
             using System.Threading;
 
-            namespace FibonacciApp
+            namespace FibonacciApp;
+            class Program
             {
-                class Program
+                static void Main(string[] args)
                 {
-                    static void Main(string[] args)
-                    {
-                        // Implement logic that calculates the Fibonacci sequence.
-                        // Use additional classes from MyCustomImplementation and IParameter
-                    }
+                    // Implement logic that calculates the Fibonacci sequence.
+                    // Use additional classes from MyCustomImplementation and IParameter
                 }
             }
             </input>
@@ -105,12 +86,15 @@ Code:
             MyCustomImplementation
             IParameter
             </output>
-            </EXAMPLE>
-
-            INPUT:
-            {{input}}
-
-            OUTPUT:
+            </EXAMPLE 1>
+            <EXAMPLE 2>
+            <input>
+            // create tests for FileIO class
+            </input>
+            <output>
+            FileIO
+            </output>
+            </EXAMPLE 2>
         RegeneratePrompt: |
             You must wrap the code by '```csharp' and '```' as it will be extracted and saved to the file. Return only code.
             ```csharp

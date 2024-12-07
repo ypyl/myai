@@ -26,9 +26,13 @@ public class Conversation
 
     public string? LLMResponse => _chatHistory.Last().Text;
 
-    public async Task<ChatMessage> CompleteAsync()
+    public async Task<ChatMessage> CompleteAsync(IList<Delegate>? tools = null)
     {
-        var response = await _chatClient.CompleteAsync(_chatHistory);
+        var chatOptions = tools is null ? null : new ChatOptions
+        {
+            Tools = [.. tools.Select(x => AIFunctionFactory.Create(x))],
+        };
+        var response = await _chatClient.CompleteAsync(_chatHistory, chatOptions);
         _chatHistory.Add(response.Message);
         return response.Message;
     }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using Spectre.Console;
 
 namespace MyAi.Tools;
 

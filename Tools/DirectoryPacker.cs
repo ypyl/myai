@@ -126,4 +126,23 @@ public class DirectoryPacker
 
         return repositoryFile.ToString();
     }
+
+    public string GetFileContent(string filePath)
+    {
+        if (string.IsNullOrEmpty(filePath))
+        {
+            _logger.LogWarning("No file path provided");
+            return string.Empty;
+        }
+
+        _logger.LogInformation("Starting GetFileContent method for file path: {FilePath}", filePath);
+
+        if (!File.Exists(filePath))
+        {
+            _logger.LogWarning("File not found: {FilePath}", filePath);
+            return string.Empty;
+        }
+
+        return File.ReadAllText(filePath);
+    }
 }
