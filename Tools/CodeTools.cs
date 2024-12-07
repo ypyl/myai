@@ -9,6 +9,8 @@ public sealed class CodeOptions
     public string UserPrompt { get; set; } = string.Empty;
     public string TypesFromInstructionsPrompt { get; set; } = string.Empty;
     public string RegeneratePrompt { get; set; } = string.Empty;
+    public string Prefix { get; set; } = string.Empty;
+    public string Postfix { get; set; } = string.Empty;
 }
 
 public enum CodeLanguage

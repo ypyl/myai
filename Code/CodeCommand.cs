@@ -7,9 +7,9 @@ namespace MyAi.Code;
 
 public sealed class CodeCommand : AsyncCommand<CodeCommand.Settings>
 {
-    private readonly GenerateCodeAgent _codeGenerator;
+    private readonly CodeAgent _codeGenerator;
 
-    public CodeCommand(GenerateCodeAgent codeGenerator)
+    public CodeCommand(CodeAgent codeGenerator)
     {
         _codeGenerator = codeGenerator;
     }

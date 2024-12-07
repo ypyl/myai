@@ -3,11 +3,7 @@ Code:
         SystemPrompt: |
             ROLE AND CONTEXT:
             You are a senior software developer. You will receive C# code from user with comments containing instructions how to modify/update the provided code.
-            {{#mainInstruction}}
             INSTRUCTION:
-            - {{mainInstruction}}
-            {{/mainInstruction}}
-            CONSTRAINTS:
             - Follow the instructions specified in comments, strictly adhering to the requirements.
             - Make no additional changes or optimizations unless explicitly mentioned.
             - Maintain the structure of the code provided and make only the changes directly mentioned in the comments.
@@ -72,6 +68,10 @@ Code:
             INPUT:
             {{input}}
         UserPrompt: |
+            {{#mainInstruction}}
+            INSTRUCTION:
+            - {{mainInstruction}}
+            {{/mainInstruction}}
             OUTPUT:
             ```csharp
         TypesFromInstructionsPrompt: |
@@ -114,3 +114,7 @@ Code:
         RegeneratePrompt: |
             You must wrap the code by '```csharp' and '```' as it will be extracted and saved to the file. Return only code.
             ```csharp
+        Prefix: |
+            ```csharp
+        Postfix: |
+            ```

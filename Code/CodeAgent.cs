@@ -4,11 +4,11 @@ using MyAi.Tools;
 
 namespace MyAi.Code;
 
-public class GenerateCodeAgent
+public class CodeAgent
 {
-    public GenerateCodeAgent(ExternalProcess externalProcess, VSCode VSCode, CodeTools codeTools, WorkingDirectory workingDirectory,
+    public CodeAgent(ExternalProcess externalProcess, VSCode VSCode, CodeTools codeTools, WorkingDirectory workingDirectory,
         ExternalTypesFromInstructionsAgent externalTypesFromInstructionsAgent, Conversation conversation, FileIO fileIO,
-        AutoFixLlmAnswer autoFixLlmAnswer, DirectoryPacker directoryPacker, ILogger<GenerateCodeAgent> logger)
+        AutoFixLlmAnswer autoFixLlmAnswer, DirectoryPacker directoryPacker, ILogger<CodeAgent> logger)
     {
         _externalProcess = externalProcess;
         _VSCode = VSCode;
@@ -22,8 +22,6 @@ public class GenerateCodeAgent
         _logger = logger;
     }
 
-    const string Prefix = "```csharp";
-    const string Postfix = "```";
     private readonly ExternalProcess _externalProcess;
 
     public VSCode _VSCode { get; }
@@ -35,7 +33,7 @@ public class GenerateCodeAgent
     private readonly FileIO _fileIO;
     private readonly AutoFixLlmAnswer _autoFixLlmAnswer;
     private readonly DirectoryPacker _directoryPacker;
-    private readonly ILogger<GenerateCodeAgent> _logger;
+    private readonly ILogger<CodeAgent> _logger;
 
     public async Task<bool> Run(string? mainInstruction)
     {
@@ -62,21 +60,21 @@ public class GenerateCodeAgent
         List<string> additionalFileContents = [.. extractedTypesContent.Concat(externalTypesContent)];
         var filtered = additionalFileContents.Distinct();
 
-        var additionalContext = _directoryPacker.PackFiles(filtered.ToArray());
+        var additionalContext = _directoryPacker.PackFiles([.. filtered]);
 
-        _conversation.AddMessage(ChatRole.System, codeOptions.SystemPrompt, new { mainInstruction, additionalContext, input = fileContent });
-        _conversation.AddMessage(ChatRole.User, codeOptions.UserPrompt);
+        _conversation.AddMessage(ChatRole.System, codeOptions.SystemPrompt, new { additionalContext, input = fileContent });
+        _conversation.AddMessage(ChatRole.User, codeOptions.UserPrompt, new { mainInstruction });
 
         await _conversation.CompleteAsync();
         var answer = await _autoFixLlmAnswer.RetrieveCodeFragment(_conversation, IsCodeOnly, codeOptions.RegeneratePrompt);
         if (answer is null) return false;
 
-        var codeOnly = answer[Prefix.Length..^Postfix.Length];
+        var codeOnly = answer[codeOptions.Prefix.Length..^codeOptions.Postfix.Length];
 
         await _fileIO.WriteAsync(targetFilePath, codeOnly);
 
         return true;
-    }
 
-    private static bool IsCodeOnly(string result) => result.StartsWith(Prefix) && result.EndsWith(Postfix);
+        bool IsCodeOnly(string result) => result.StartsWith(codeOptions.Prefix.Trim()) && result.EndsWith(codeOptions.Postfix.Trim());
+    }
 }
