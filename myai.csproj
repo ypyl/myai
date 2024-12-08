@@ -8,7 +8,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>myai</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
-    <Version>1.1.19</Version>
+    <Version>1.1.20</Version>
   </PropertyGroup>
 
   <ItemGroup>
