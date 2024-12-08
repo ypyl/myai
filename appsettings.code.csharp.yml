@@ -58,9 +58,10 @@ Code:
             INSTRUCTION:
             - Follow the instructions of the user, strictly adhering to the requirements.
             - Make no additional changes or optimizations unless explicitly mentioned.
+            - Use additional context provided, but ensure that no part of the additional code is included unless specified in the instructions.
             - Maintain the structure of the code provided and make only the changes directly mentioned in the user instruction.
             - Ensure that the code is correct and follows best practices.
-            - Return only the full, modified C# code based on the instructions.
+            - Return only the full, modified C# code based on the instructions, without your comments.
             - The output must be a clean, compilable, finalized version of the C# codeю
             - When returning the code, ensure that it is wrapped by '```csharp' and '```' to maintain the formatting.
             EXAMPLES:
