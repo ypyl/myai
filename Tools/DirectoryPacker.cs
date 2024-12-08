@@ -16,12 +16,12 @@ public class DirectoryPacker
     {
         _logger.LogInformation("Starting Pack method for path: {Path}", path);
         var supportedExtensions = new[] { ".cs", ".ts", ".tsx" };
-        var repositoryStructure = new StringBuilder();
-        var repositoryFiles = new StringBuilder();
+        var directoryStructure = new StringBuilder();
+        var directoryFiles = new StringBuilder();
 
-        repositoryStructure.Append("================================================================\n");
-        repositoryStructure.Append("Repository Structure\n");
-        repositoryStructure.Append("================================================================\n");
+        directoryStructure.Append("================================================================\n");
+        directoryStructure.Append("Directory Structure\n");
+        directoryStructure.Append("================================================================\n");
 
         var files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
                              .Where(file => supportedExtensions.Contains(Path.GetExtension(file)))
@@ -37,7 +37,7 @@ public class DirectoryPacker
         {
             if (dir is null) continue;
             var relativeDir = Path.GetRelativePath(path, dir).Replace("\\", "/");
-            repositoryStructure.Append(relativeDir + "/\n");
+            directoryStructure.Append(relativeDir + "/\n");
 
             var dirFiles = files.Where(file => Path.GetDirectoryName(file) == dir)
                                 .Select(file => Path.GetFileName(file))
@@ -45,24 +45,24 @@ public class DirectoryPacker
 
             foreach (var file in dirFiles)
             {
-                repositoryStructure.Append("  " + file + "\n");
+                directoryStructure.Append("  " + file + "\n");
             }
         }
 
-        repositoryFiles.Append("================================================================\n");
-        repositoryFiles.Append("Repository Files\n");
-        repositoryFiles.Append("================================================================\n");
+        directoryFiles.Append("================================================================\n");
+        directoryFiles.Append("Directory Files\n");
+        directoryFiles.Append("================================================================\n");
 
         foreach (var file in files)
         {
             var relativeFile = Path.GetRelativePath(path, file).Replace("\\", "/");
-            repositoryFiles.Append("================\n");
-            repositoryFiles.Append($"File: {relativeFile}\n");
-            repositoryFiles.Append("================\n");
-            repositoryFiles.Append(File.ReadAllText(file) + "\n\n");
+            directoryFiles.Append("================\n");
+            directoryFiles.Append($"File: {relativeFile}\n");
+            directoryFiles.Append("================\n");
+            directoryFiles.Append(File.ReadAllText(file) + "\n\n");
         }
 
-        return repositoryStructure.ToString() + repositoryFiles.ToString();
+        return directoryStructure.ToString() + directoryFiles.ToString();
     }
 
     public string PackFiles(string[] filePaths)
@@ -74,10 +74,6 @@ public class DirectoryPacker
         }
         _logger.LogInformation("Starting PackFiles method for file paths: {FilePaths}", string.Join(", ", filePaths));
         var repositoryFiles = new StringBuilder();
-
-        repositoryFiles.Append("================================================================\n");
-        repositoryFiles.Append("Repository Files\n");
-        repositoryFiles.Append("================================================================\n");
 
         foreach (var file in filePaths)
         {
