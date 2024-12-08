@@ -53,7 +53,7 @@ public class CodeAgent
         _conversation.AddMessage(ChatRole.System, codeOptions.InstructionBasedCodeSystemPrompt);
         _conversation.AddMessage(ChatRole.User, codeOptions.InstructionBasedCodeUserPrompt, new { input = fileContent, instruction });
 
-        await _conversation.CompleteAsync();
+        await _conversation.CompleteAsync([GetClassImplementation]);
         var answer = await _autoFixLlmAnswer.RetrieveCodeFragment(_conversation, IsCodeOnly, codeOptions.RegeneratePrompt);
         if (answer is null) return false;
 
@@ -64,5 +64,14 @@ public class CodeAgent
         return true;
 
         bool IsCodeOnly(string result) => result.StartsWith(codeOptions.Prefix.Trim()) && result.EndsWith(codeOptions.Postfix.Trim());
+
+        [Description("Get the implementation of the class.")]
+        string GetClassImplementation(string className)
+        {
+            var cleanedClassName = className.Split(".")[^1].Trim();
+            var result = _codeTools.GetExistingPathsOfExternalTypes(allFiles, [cleanedClassName]);
+            if (result.Count == 0) return "No implementation found.";
+            return _directoryPacker.GetFileContent(result.First());
+        }
     }
 }
