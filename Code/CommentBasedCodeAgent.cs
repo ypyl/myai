@@ -53,7 +53,7 @@ public class CommentBasedCodeAgent
 
         var fileContent = _directoryPacker.GetFileContent(targetFilePath);
 
-        var extractedTypes = await _externalTypesFromCodeCommentsAgent.Run(codeOptions.TypesFromCodeCommentsPrompt, codeOptions.TypesFromCodeCommentsPromptUserPrompt, fileContent);
+        var extractedTypes = await _externalTypesFromCodeCommentsAgent.Run(codeOptions.TypesFromCodeCommentsPrompts, fileContent);
         var externalTypes = _codeTools.GetExternalTypes(codeLangugage, fileContent);
         var extractedTypesPaths = _codeTools.GetExistingPathsOfExternalTypes(allFiles, extractedTypes);
         var externalTypesPaths = _codeTools.GetExistingPathsOfExternalTypes(allFiles, externalTypes);
@@ -63,8 +63,8 @@ public class CommentBasedCodeAgent
 
         var additionalContext = _directoryPacker.PackFiles([.. filtered]);
 
-        _conversation.AddMessage(ChatRole.System, codeOptions.CommentBasedCodeSystemPrompt);
-        _conversation.AddMessage(ChatRole.User, codeOptions.CommentBasedCodeUserPrompt, new { additionalContext, input = fileContent });
+        _conversation.AddMessage(ChatRole.System, codeOptions.CommentBasedCodePrompts[0]);
+        _conversation.AddMessage(ChatRole.User, codeOptions.CommentBasedCodePrompts[1], new { additionalContext, input = fileContent });
 
         await _conversation.CompleteAsync([GetExternalTypeImplementation]);
         var answer = await _autoFixLlmAnswer.RetrieveCodeFragment(_conversation, IsCodeOnly, codeOptions.RegeneratePrompt);

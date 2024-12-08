@@ -5,12 +5,9 @@ namespace MyAi.Tools;
 
 public sealed class CodeOptions
 {
-    public string CommentBasedCodeSystemPrompt { get; set; } = string.Empty;
-    public string CommentBasedCodeUserPrompt { get; set; } = string.Empty;
-    public string InstructionBasedCodeSystemPrompt { get; set; } = string.Empty;
-    public string InstructionBasedCodeUserPrompt { get; set; } = string.Empty;
-    public string TypesFromCodeCommentsPrompt { get; set; } = string.Empty;
-    public string TypesFromCodeCommentsPromptUserPrompt { get; set; } = string.Empty;
+    public List<string> CommentBasedCodePrompts { get; set; } = [];
+    public List<string> InstructionBasedCodePrompts { get; set; } = [];
+    public List<string> TypesFromCodeCommentsPrompts { get; set; } = [];
     public string RegeneratePrompt { get; set; } = string.Empty;
     public string Prefix { get; set; } = string.Empty;
     public string Postfix { get; set; } = string.Empty;

@@ -11,7 +11,7 @@ public class CodeAgent
         Conversation conversation, FileIO fileIO, AutoFixLlmAnswer autoFixLlmAnswer, DirectoryPacker directoryPacker, ILogger<CommentBasedCodeAgent> logger)
     {
         _externalProcess = externalProcess;
-        _VSCode = VSCode;
+        _vsCode = VSCode;
         _codeTools = codeTools;
         _workingDirectory = workingDirectory;
         _conversation = conversation;
@@ -23,7 +23,7 @@ public class CodeAgent
 
     private readonly ExternalProcess _externalProcess;
 
-    public VSCode _VSCode { get; }
+    private readonly VSCode _vsCode;
 
     private readonly CodeTools _codeTools;
     private readonly WorkingDirectory _workingDirectory;
@@ -37,7 +37,7 @@ public class CodeAgent
     {
         var targetWindowTitle = _externalProcess.GetFocusedWindowTitle();
 
-        var targetFileName = _VSCode.ParseWindowTitle(targetWindowTitle);
+        var targetFileName = _vsCode.ParseWindowTitle(targetWindowTitle);
         var workingDir = _workingDirectory.GetWorkingDirectory();
         var codeLangugage = _codeTools.GetCodeLanguage(targetFileName);
         var codeOptions = _codeTools.GetCodeOptions(codeLangugage);
@@ -50,8 +50,8 @@ public class CodeAgent
 
         var fileContent = _directoryPacker.GetFileContent(targetFilePath);
 
-        _conversation.AddMessage(ChatRole.System, codeOptions.InstructionBasedCodeSystemPrompt);
-        _conversation.AddMessage(ChatRole.User, codeOptions.InstructionBasedCodeUserPrompt, new { input = fileContent, instruction });
+        _conversation.AddMessage(ChatRole.System, codeOptions.InstructionBasedCodePrompts[0]);
+        _conversation.AddMessage(ChatRole.User, codeOptions.InstructionBasedCodePrompts[1], new { input = fileContent, instruction });
 
         await _conversation.CompleteAsync([GetClassImplementation]);
         var answer = await _autoFixLlmAnswer.RetrieveCodeFragment(_conversation, IsCodeOnly, codeOptions.RegeneratePrompt);
