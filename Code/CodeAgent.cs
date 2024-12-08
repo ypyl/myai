@@ -65,7 +65,7 @@ public class CodeAgent
 
         bool IsCodeOnly(string result) => result.StartsWith(codeOptions.Prefix.Trim()) && result.EndsWith(codeOptions.Postfix.Trim());
 
-        [Description("Get the implementation of the class.")]
+        [Description("Get the implementation of the class based on its name.")]
         string GetClassImplementation(string className)
         {
             var cleanedClassName = className.Split(".")[^1].Trim();

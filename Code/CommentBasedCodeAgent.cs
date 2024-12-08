@@ -78,7 +78,7 @@ public class CommentBasedCodeAgent
 
         bool IsCodeOnly(string result) => result.StartsWith(codeOptions.Prefix.Trim()) && result.EndsWith(codeOptions.Postfix.Trim());
 
-        [Description("Get the implementation of the class which is used in the provided code.")]
+        [Description("Get the implementation of the class based on its name.")]
         string GetExternalTypeImplementation(string className)
         {
             var result = _codeTools.GetExistingPathsOfExternalTypes(allFiles, [className]);

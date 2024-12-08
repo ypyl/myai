@@ -35,6 +35,7 @@ public class DirectoryPacker
 
         foreach (var dir in directories)
         {
+            if (dir is null) continue;
             var relativeDir = Path.GetRelativePath(path, dir).Replace("\\", "/");
             repositoryStructure.Append(relativeDir + "/\n");
 

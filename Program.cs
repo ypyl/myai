@@ -34,7 +34,6 @@ serviceCollection.AddScoped<VSCode>();
 serviceCollection.AddScoped<AutoFixLlmAnswer>();
 serviceCollection.AddScoped<WorkingDirectory>();
 serviceCollection.AddScoped<IConfiguration>(provider => configuration);
-serviceCollection.Configure<AddLoggingOptions>(configuration);
 
 serviceCollection.AddScoped<CommentBasedCodeAgent>();
 serviceCollection.AddScoped<CodeAgent>();
