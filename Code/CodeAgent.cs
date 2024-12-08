@@ -8,14 +8,12 @@ namespace MyAi.Code;
 public class CodeAgent
 {
     public CodeAgent(ExternalProcess externalProcess, VSCode VSCode, CodeTools codeTools, WorkingDirectory workingDirectory,
-        ExternalTypesFromInstructionAgent externalTypesFromInstructionsAgent, Conversation conversation, FileIO fileIO,
-        AutoFixLlmAnswer autoFixLlmAnswer, DirectoryPacker directoryPacker, ILogger<CommentBasedCodeAgent> logger)
+        Conversation conversation, FileIO fileIO, AutoFixLlmAnswer autoFixLlmAnswer, DirectoryPacker directoryPacker, ILogger<CommentBasedCodeAgent> logger)
     {
         _externalProcess = externalProcess;
         _VSCode = VSCode;
         _codeTools = codeTools;
         _workingDirectory = workingDirectory;
-        _externalTypesFromInstructionsAgent = externalTypesFromInstructionsAgent;
         _conversation = conversation;
         _fileIO = fileIO;
         _autoFixLlmAnswer = autoFixLlmAnswer;
@@ -29,7 +27,6 @@ public class CodeAgent
 
     private readonly CodeTools _codeTools;
     private readonly WorkingDirectory _workingDirectory;
-    private readonly ExternalTypesFromInstructionAgent _externalTypesFromInstructionsAgent;
     private readonly Conversation _conversation;
     private readonly FileIO _fileIO;
     private readonly AutoFixLlmAnswer _autoFixLlmAnswer;
@@ -53,20 +50,10 @@ public class CodeAgent
 
         var fileContent = _directoryPacker.GetFileContent(targetFilePath);
 
-        var extractedTypes = await _externalTypesFromInstructionsAgent.Run(codeOptions.TypesFromInstructionsPrompt, instruction);
-        var externalTypes = _codeTools.GetExternalTypes(codeLangugage, fileContent);
-        var extractedTypesPaths = _codeTools.GetExistingPathsOfExternalTypes(allFiles, extractedTypes);
-        var externalTypesPaths = _codeTools.GetExistingPathsOfExternalTypes(allFiles, externalTypes);
+        _conversation.AddMessage(ChatRole.System, codeOptions.InstructionBasedCodeSystemPrompt);
+        _conversation.AddMessage(ChatRole.User, codeOptions.InstructionBasedCodeUserPrompt, new { input = fileContent, instruction });
 
-        List<string> additionalFileContents = [.. extractedTypesPaths.Concat(externalTypesPaths)];
-        var filtered = additionalFileContents.Distinct();
-
-        var additionalContext = _directoryPacker.PackFiles([.. filtered]);
-
-        _conversation.AddMessage(ChatRole.System, codeOptions.CodeAgentSystemPrompt);
-        _conversation.AddMessage(ChatRole.User, codeOptions.UserPrompt, new { additionalContext, input = fileContent });
-
-        await _conversation.CompleteAsync([GetExternalTypeImplementation]);
+        await _conversation.CompleteAsync();
         var answer = await _autoFixLlmAnswer.RetrieveCodeFragment(_conversation, IsCodeOnly, codeOptions.RegeneratePrompt);
         if (answer is null) return false;
 
@@ -77,14 +64,5 @@ public class CodeAgent
         return true;
 
         bool IsCodeOnly(string result) => result.StartsWith(codeOptions.Prefix.Trim()) && result.EndsWith(codeOptions.Postfix.Trim());
-
-        [Description("Get the implementation of the class which is used in the provided code.")]
-        string GetExternalTypeImplementation(string className)
-        {
-            _logger.LogInformation("Getting external class implementation for {typeName}.", className);
-            var result = _codeTools.GetExistingPathsOfExternalTypes(allFiles, [className]);
-            if (result.Count == 0) return "No implementation found.";
-            return _directoryPacker.GetFileContent(result.First());
-        }
     }
 }

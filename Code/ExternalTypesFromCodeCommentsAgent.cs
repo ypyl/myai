@@ -13,11 +13,11 @@ public class ExternalTypesFromCodeCommentsAgent
         _conversation = conversation;
         _logger = logger;
     }
-    public async Task<List<string>> Run(string typesFromInstructionsPrompt, string typesFromInstructionsUserPrompt, string targetFileContent)
+    public async Task<List<string>> Run(string typesFromCodeCommentsPrompt, string typesFromCodeCommentsUserPrompt, string targetFileContent)
     {
         _logger.LogInformation("Getting external types from code comments.");
-        _conversation.AddMessage(ChatRole.System, typesFromInstructionsPrompt);
-        _conversation.AddMessage(ChatRole.User, typesFromInstructionsUserPrompt, new { input = targetFileContent });
+        _conversation.AddMessage(ChatRole.System, typesFromCodeCommentsPrompt);
+        _conversation.AddMessage(ChatRole.User, typesFromCodeCommentsUserPrompt, new { input = targetFileContent });
 
         await _conversation.CompleteAsync();
 

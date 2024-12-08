@@ -39,7 +39,6 @@ serviceCollection.Configure<AddLoggingOptions>(configuration);
 serviceCollection.AddScoped<CommentBasedCodeAgent>();
 serviceCollection.AddScoped<CodeAgent>();
 serviceCollection.AddScoped<ExternalTypesFromCodeCommentsAgent>();
-serviceCollection.AddScoped<ExternalTypesFromInstructionAgent>();
 
 var openAILink = Environment.GetEnvironmentVariable("MYAI_URI");
 var openAIKey = Environment.GetEnvironmentVariable("MYAI_KEY");

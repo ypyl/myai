@@ -44,7 +44,15 @@ Code:
                 }
             }
             ```
-        CodeAgentSystemPrompt: |
+        CommentBasedCodeUserPrompt: |
+            {{#additionalContext}}
+            ADDITIONAL CONTEXT:
+            {{additionalContext}}
+            {{/additionalContext}}
+            PROVIDED CODE:
+            {{input}}
+            ```csharp
+        InstructionBasedCodeSystemPrompt: |
             ROLE AND CONTEXT:
             You are a senior software developer. You will receive C# code from user. Follow user instruction to update the code.
             INSTRUCTION:
@@ -87,60 +95,28 @@ Code:
                 }
             }
             ```
-        UserPrompt: |
-            {{#additionalContext}}
-            ADDITIONAL CONTEXT:
-            {{additionalContext}}
-            {{/additionalContext}}
+        InstructionBasedCodeUserPrompt: |
+            User instruction:
+            {{instruction}}
             PROVIDED CODE:
             {{input}}
+            OUTPUT:
             ```csharp
         TypesFromInstructionsPrompt: |
             ROLE AND CONTEXT:
-            You are a senior software developer. Your task is provide a list of class names mentioned in the user instruction.
+            You are a senior software developer. Your task is provide a list of class names mentioned in the user input.
             INSTRUCTIONS:
-            - Analyze user instruction and provide a list of mentioned classes.
+            - Analyze user input and provide a list of mentioned classes.
             - Return only list of class names without any comments.
             - Do not return code.
 
             EXAMPLES:
-            Example 1:
+            User input:
             Make sure that the code uses the MyCustomImplementation class.
             Expected output:
             - MyCustomImplementation
-        TypesFromCodeCommentsPrompt: |
-            ROLE AND CONTEXT:
-            You are a senior software developer. You will receive C# code with comments. Your task is provide a list of class names mentioned in the comments.
-            INSTRUCTIONS:
-            - Extract content of all comments from provided code.
-            - Analyze each of the comment and provide a list of mentioned classes.
-            - Return only list of class names without any comments.
-            - Do not return code.
-
-            EXAMPLES:
-            Example 1:
-            Provided code:
-            using System.Threading;
-
-            namespace FibonacciApp;
-            class Program
-            {
-                static void Main(string[] args)
-                {
-                    // Implement logic that calculates the Fibonacci sequence.
-                    // Use additional classes from MyCustomImplementation and IParameter
-                }
-            }
-            Expected output:
-            - MyCustomImplementation
-            - IParameter
-            Example 2:
-            Provided code:
-            // create tests for FileIO class
-            Expected output:
-            - FileIO
-        TypesFromInstructionsUserPrompt: |
-            Provided code:
+        TypesFromInstructionsPromptUserPrompt: |
+            User input:
             {{input}}
             Output:
             -
