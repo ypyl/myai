@@ -101,7 +101,7 @@ Code:
             {{input}}
             OUTPUT:
             ```csharp
-        TypesFromInstructionsPrompt: |
+        TypesFromCodeCommentsPrompt: |
             ROLE AND CONTEXT:
             You are a senior software developer. Your task is provide a list of class names mentioned in the user input.
             INSTRUCTIONS:
@@ -114,7 +114,7 @@ Code:
             Make sure that the code uses the MyCustomImplementation class.
             Expected output:
             - MyCustomImplementation
-        TypesFromInstructionsPromptUserPrompt: |
+        TypesFromCodeCommentsPromptUserPrompt: |
             User input:
             {{input}}
             Output:
