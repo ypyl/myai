@@ -1,7 +1,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace MyAi.Tools;
+namespace MyAi.Code;
 
 public sealed class CsNonStandardTypeExtractorPlugin
 {

@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using Spectre.Console;
 
-namespace MyAi.Tools;
+namespace MyAi.Code;
 
 public sealed class TsNonStandardModuleExtractorPlugin
 {
