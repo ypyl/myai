@@ -5,12 +5,15 @@ namespace MyAi.Tools;
 
 public sealed class CodeOptions
 {
-    public string SystemPrompt { get; set; } = string.Empty;
+    public string CommentBasedCodeSystemPrompt { get; set; } = string.Empty;
+    public string CodeAgentSystemPrompt { get; set; } = string.Empty;
     public string UserPrompt { get; set; } = string.Empty;
+    public string TypesFromCodeCommentsPrompt { get; set; } = string.Empty;
     public string TypesFromInstructionsPrompt { get; set; } = string.Empty;
     public string RegeneratePrompt { get; set; } = string.Empty;
     public string Prefix { get; set; } = string.Empty;
     public string Postfix { get; set; } = string.Empty;
+    public string TypesFromInstructionsUserPrompt { get; set; } = string.Empty;
 }
 
 public enum CodeLanguage

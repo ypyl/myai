@@ -5,17 +5,17 @@ using MyAi.Tools;
 
 namespace MyAi.Code;
 
-public class CodeAgent
+public class CommentBasedCodeAgent
 {
-    public CodeAgent(ExternalProcess externalProcess, VSCode VSCode, CodeTools codeTools, WorkingDirectory workingDirectory,
-        ExternalTypesFromInstructionAgent externalTypesFromInstructionsAgent, Conversation conversation, FileIO fileIO,
+    public CommentBasedCodeAgent(ExternalProcess externalProcess, VSCode VSCode, CodeTools codeTools, WorkingDirectory workingDirectory,
+        ExternalTypesFromCodeCommentsAgent externalTypesFromCodeCommentsAgent, Conversation conversation, FileIO fileIO,
         AutoFixLlmAnswer autoFixLlmAnswer, DirectoryPacker directoryPacker, ILogger<CommentBasedCodeAgent> logger)
     {
         _externalProcess = externalProcess;
         _VSCode = VSCode;
         _codeTools = codeTools;
         _workingDirectory = workingDirectory;
-        _externalTypesFromInstructionsAgent = externalTypesFromInstructionsAgent;
+        _externalTypesFromCodeCommentsAgent = externalTypesFromCodeCommentsAgent;
         _conversation = conversation;
         _fileIO = fileIO;
         _autoFixLlmAnswer = autoFixLlmAnswer;
@@ -29,14 +29,14 @@ public class CodeAgent
 
     private readonly CodeTools _codeTools;
     private readonly WorkingDirectory _workingDirectory;
-    private readonly ExternalTypesFromInstructionAgent _externalTypesFromInstructionsAgent;
+    private readonly ExternalTypesFromCodeCommentsAgent _externalTypesFromCodeCommentsAgent;
     private readonly Conversation _conversation;
     private readonly FileIO _fileIO;
     private readonly AutoFixLlmAnswer _autoFixLlmAnswer;
     private readonly DirectoryPacker _directoryPacker;
     private readonly ILogger<CommentBasedCodeAgent> _logger;
 
-    public async Task<bool> Run(string instruction)
+    public async Task<bool> Run()
     {
         var targetWindowTitle = _externalProcess.GetFocusedWindowTitle();
 
@@ -53,7 +53,7 @@ public class CodeAgent
 
         var fileContent = _directoryPacker.GetFileContent(targetFilePath);
 
-        var extractedTypes = await _externalTypesFromInstructionsAgent.Run(codeOptions.TypesFromInstructionsPrompt, instruction);
+        var extractedTypes = await _externalTypesFromCodeCommentsAgent.Run(codeOptions.TypesFromCodeCommentsPrompt, codeOptions.TypesFromInstructionsUserPrompt, fileContent);
         var externalTypes = _codeTools.GetExternalTypes(codeLangugage, fileContent);
         var extractedTypesPaths = _codeTools.GetExistingPathsOfExternalTypes(allFiles, extractedTypes);
         var externalTypesPaths = _codeTools.GetExistingPathsOfExternalTypes(allFiles, externalTypes);
@@ -63,7 +63,7 @@ public class CodeAgent
 
         var additionalContext = _directoryPacker.PackFiles([.. filtered]);
 
-        _conversation.AddMessage(ChatRole.System, codeOptions.CodeAgentSystemPrompt);
+        _conversation.AddMessage(ChatRole.System, codeOptions.CommentBasedCodeSystemPrompt);
         _conversation.AddMessage(ChatRole.User, codeOptions.UserPrompt, new { additionalContext, input = fileContent });
 
         await _conversation.CompleteAsync([GetExternalTypeImplementation]);
@@ -81,7 +81,6 @@ public class CodeAgent
         [Description("Get the implementation of the class which is used in the provided code.")]
         string GetExternalTypeImplementation(string className)
         {
-            _logger.LogInformation("Getting external class implementation for {typeName}.", className);
             var result = _codeTools.GetExistingPathsOfExternalTypes(allFiles, [className]);
             if (result.Count == 0) return "No implementation found.";
             return _directoryPacker.GetFileContent(result.First());

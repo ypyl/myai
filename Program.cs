@@ -21,14 +21,13 @@ var serviceCollection = new ServiceCollection();
 serviceCollection.AddLogging(configure => configure.AddConfiguration(configuration.GetSection("Logging")).AddConsole());
 serviceCollection.AddScoped<IStubbleRenderer>((provider) => new StubbleBuilder().Build());
 serviceCollection.AddScoped<PromptBuilder>();
-serviceCollection.AddScoped<CodeAgent>();
 serviceCollection.AddTransient<Conversation>();
+
 serviceCollection.AddScoped<ExternalProcess>();
 serviceCollection.AddScoped<CodeTools>();
 serviceCollection.AddScoped<DirectoryPacker>();
 serviceCollection.AddScoped<FileFinder>();
 serviceCollection.AddScoped<CsNonStandardTypeExtractorPlugin>();
-serviceCollection.AddScoped<ExternalTypesFromInstructionsAgent>();
 serviceCollection.AddScoped<TsNonStandardModuleExtractorPlugin>();
 serviceCollection.AddScoped<FileIO>();
 serviceCollection.AddScoped<VSCode>();
@@ -36,6 +35,11 @@ serviceCollection.AddScoped<AutoFixLlmAnswer>();
 serviceCollection.AddScoped<WorkingDirectory>();
 serviceCollection.AddScoped<IConfiguration>(provider => configuration);
 serviceCollection.Configure<AddLoggingOptions>(configuration);
+
+serviceCollection.AddScoped<CommentBasedCodeAgent>();
+serviceCollection.AddScoped<CodeAgent>();
+serviceCollection.AddScoped<ExternalTypesFromCodeCommentsAgent>();
+serviceCollection.AddScoped<ExternalTypesFromInstructionAgent>();
 
 var openAILink = Environment.GetEnvironmentVariable("MYAI_URI");
 var openAIKey = Environment.GetEnvironmentVariable("MYAI_KEY");
@@ -48,7 +52,7 @@ var chatClient = openAILink is not null && openAIKey is not null && openAIModel 
 serviceCollection.AddChatClient(services =>
     new ChatClientBuilder(chatClient)
         .UseLogging(services.GetRequiredService<ILoggerFactory>())
-        .UseFunctionInvocation()
+        .UseFunctionInvocation(services.GetRequiredService<ILoggerFactory>())
         .Build());
 
 var registrar = new TypeRegistrar(serviceCollection);

@@ -3,27 +3,27 @@ using Microsoft.Extensions.Logging;
 
 namespace MyAi.Code;
 
-public class ExternalTypesFromInstructionsAgent
+public class ExternalTypesFromInstructionAgent
 {
     private readonly Conversation _conversation;
-    private readonly ILogger<ExternalTypesFromInstructionsAgent> _logger;
+    private readonly ILogger<ExternalTypesFromCodeCommentsAgent> _logger;
 
-    public ExternalTypesFromInstructionsAgent(Conversation conversation, ILogger<ExternalTypesFromInstructionsAgent> logger)
+    public ExternalTypesFromInstructionAgent(Conversation conversation, ILogger<ExternalTypesFromCodeCommentsAgent> logger)
     {
         _conversation = conversation;
         _logger = logger;
     }
-    public async Task<List<string>> Run(string typesFromInstructionsPrompt, string targetFileContent)
+    public async Task<List<string>> Run(string typesFromInstructionsPrompt, string instruction)
     {
         _logger.LogInformation("Getting external types from instructions.");
         _conversation.AddMessage(ChatRole.System, typesFromInstructionsPrompt);
-        _conversation.AddMessage(ChatRole.User, targetFileContent);
+        _conversation.AddMessage(ChatRole.User, instruction);
 
         await _conversation.CompleteAsync();
 
         var txtAnswer = _conversation.LLMResponse ?? string.Empty;
         _logger.LogInformation("LLM Response: {txtAnswer}", string.IsNullOrWhiteSpace(txtAnswer) ? "EMPTY RESPONSE" : txtAnswer);
-        var typesFromInstructions = txtAnswer.Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries);
+        var typesFromInstructions = txtAnswer.Split(["*", "-", "\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries).Select(type => type.Trim());
         return typesFromInstructions.ToList() ?? [];
     }
 }
