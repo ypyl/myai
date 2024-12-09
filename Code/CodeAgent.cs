@@ -84,6 +84,6 @@ public class CodeAgent
 
     public List<string> ExtractAtWords(string instruction)
     {
-        return [.. instruction.Split(' ').Where(word => word.StartsWith('@')).Select(word => word.TrimStart('@'))];
+        return [.. instruction.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(word => word.StartsWith('@')).Select(word => word.TrimStart('@'))];
     }
 }

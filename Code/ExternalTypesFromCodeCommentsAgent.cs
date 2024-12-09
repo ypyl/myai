@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MyAi.Code;
 
+[Obsolete("This class is obsolete. Mark all types by @ to add them to context.")]
 public class ExternalTypesFromCodeCommentsAgent
 {
     private readonly Conversation _conversation;

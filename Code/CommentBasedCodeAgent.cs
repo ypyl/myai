@@ -7,15 +7,13 @@ namespace MyAi.Code;
 
 public class CommentBasedCodeAgent
 {
-    public CommentBasedCodeAgent(ExternalProcess externalProcess, VSCode VSCode, CodeTools codeTools, WorkingDirectory workingDirectory,
-        ExternalTypesFromCodeCommentsAgent externalTypesFromCodeCommentsAgent, Conversation conversation, FileIO fileIO,
+    public CommentBasedCodeAgent(ExternalProcess externalProcess, VSCode VSCode, CodeTools codeTools, WorkingDirectory workingDirectory, Conversation conversation, FileIO fileIO,
         AutoFixLlmAnswer autoFixLlmAnswer, DirectoryPacker directoryPacker, ILogger<CommentBasedCodeAgent> logger)
     {
         _externalProcess = externalProcess;
         _vsCode = VSCode;
         _codeTools = codeTools;
         _workingDirectory = workingDirectory;
-        _externalTypesFromCodeCommentsAgent = externalTypesFromCodeCommentsAgent;
         _conversation = conversation;
         _fileIO = fileIO;
         _autoFixLlmAnswer = autoFixLlmAnswer;
@@ -29,7 +27,6 @@ public class CommentBasedCodeAgent
 
     private readonly CodeTools _codeTools;
     private readonly WorkingDirectory _workingDirectory;
-    private readonly ExternalTypesFromCodeCommentsAgent _externalTypesFromCodeCommentsAgent;
     private readonly Conversation _conversation;
     private readonly FileIO _fileIO;
     private readonly AutoFixLlmAnswer _autoFixLlmAnswer;
@@ -53,7 +50,8 @@ public class CommentBasedCodeAgent
 
         var fileContent = _directoryPacker.GetFileContent(targetFilePath);
 
-        var extractedTypes = await _externalTypesFromCodeCommentsAgent.Run(codeOptions.TypesFromCodeCommentsPrompts, fileContent);
+        var extractedTypes = ExtractAtWords(fileContent);
+
         var externalTypes = _codeTools.GetExternalTypes(codeLangugage, fileContent);
         var extractedTypesPaths = _codeTools.GetExistingPathsOfExternalTypes(allFiles, extractedTypes);
         var externalTypesPaths = _codeTools.GetExistingPathsOfExternalTypes(allFiles, externalTypes);
@@ -85,5 +83,10 @@ public class CommentBasedCodeAgent
             if (result.Count == 0) return "No implementation found.";
             return _directoryPacker.GetFileContent(result.First());
         }
+    }
+
+    public List<string> ExtractAtWords(string instruction)
+    {
+        return [.. instruction.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(word => word.StartsWith('@')).Select(word => word.TrimStart('@'))];
     }
 }
