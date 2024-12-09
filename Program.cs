@@ -35,9 +35,7 @@ serviceCollection.AddScoped<AutoFixLlmAnswer>();
 serviceCollection.AddScoped<WorkingDirectory>();
 serviceCollection.AddScoped<IConfiguration>(provider => configuration);
 
-serviceCollection.AddScoped<CommentBasedCodeAgent>();
 serviceCollection.AddScoped<CodeAgent>();
-serviceCollection.AddScoped<ExternalTypesFromCodeCommentsAgent>();
 
 var openAILink = Environment.GetEnvironmentVariable("MYAI_URI");
 var openAIKey = Environment.GetEnvironmentVariable("MYAI_KEY");

@@ -111,23 +111,6 @@ Code:
                 ```csharp
                 {{input}}
                 ```
-        TypesFromCodeCommentsPrompts:
-            - |
-                ROLE AND CONTEXT:
-                You are a senior software developer. Your task is provide a list of class names mentioned in the user input.
-                INSTRUCTIONS:
-                - Analyze user input and provide a list of mentioned classes.
-                - Return only list of class names without any comments.
-                - Do not return code.
-
-                EXAMPLES:
-                User input:
-                Make sure that the code uses the MyCustomImplementation class.
-                Expected output:
-                - MyCustomImplementation
-            - |
-                User input:
-                {{input}}
         RegeneratePrompt: |
             You must wrap the code by '```csharp' and '```' as it will be extracted and saved to the file. Return only code.
             ```csharp

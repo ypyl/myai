@@ -8,7 +8,7 @@ namespace MyAi.Code;
 public class CodeAgent
 {
     public CodeAgent(ExternalProcess externalProcess, VSCode VSCode, CodeTools codeTools, WorkingDirectory workingDirectory,
-        Conversation conversation, FileIO fileIO, AutoFixLlmAnswer autoFixLlmAnswer, DirectoryPacker directoryPacker, ILogger<CommentBasedCodeAgent> logger)
+        Conversation conversation, FileIO fileIO, AutoFixLlmAnswer autoFixLlmAnswer, DirectoryPacker directoryPacker, ILogger<CodeAgent> logger)
     {
         _externalProcess = externalProcess;
         _vsCode = VSCode;
@@ -31,9 +31,9 @@ public class CodeAgent
     private readonly FileIO _fileIO;
     private readonly AutoFixLlmAnswer _autoFixLlmAnswer;
     private readonly DirectoryPacker _directoryPacker;
-    private readonly ILogger<CommentBasedCodeAgent> _logger;
+    private readonly ILogger<CodeAgent> _logger;
 
-    public async Task<bool> Run(string instruction)
+    public async Task<bool> Run(string? instruction)
     {
         var targetWindowTitle = _externalProcess.GetFocusedWindowTitle();
 
@@ -41,6 +41,10 @@ public class CodeAgent
         var workingDir = _workingDirectory.GetWorkingDirectory();
         var codeLangugage = _codeTools.GetCodeLanguage(targetFileName);
         var codeOptions = _codeTools.GetCodeOptions(codeLangugage);
+
+        var systemPrompt = instruction is null ? codeOptions.CommentBasedCodePrompts[0] : codeOptions.InstructionBasedCodePrompts[0];
+        var userPrompt = instruction is null ? codeOptions.CommentBasedCodePrompts[1] : codeOptions.InstructionBasedCodePrompts[1];
+
         var allFiles = _codeTools.FindFilesByLanguage(workingDir, codeLangugage);
         if (!allFiles.TryGetValue(Path.GetFileNameWithoutExtension(targetFileName), out var targetFilePath))
         {
@@ -50,15 +54,19 @@ public class CodeAgent
 
         var fileContent = _directoryPacker.GetFileContent(targetFilePath);
 
-        var typesFromInstruction = ExtractAtWords(instruction);
-        var additionalFileContents = _codeTools.GetExistingPathsOfExternalTypes(allFiles, typesFromInstruction);
+        var typesFromInstruction = ExtractAtWords(instruction is null ? fileContent : instruction);
+        var additionalFilePaths = _codeTools.GetExistingPathsOfExternalTypes(allFiles, typesFromInstruction);
 
-        var filtered = additionalFileContents.Distinct();
+        var externalTypes = _codeTools.GetExternalTypes(codeLangugage, fileContent);
+        var externalTypesPaths = _codeTools.GetExistingPathsOfExternalTypes(allFiles, externalTypes);
+        additionalFilePaths = [.. additionalFilePaths.Concat(externalTypesPaths)];
+
+        var filtered = additionalFilePaths.Distinct();
 
         var additionalContext = _directoryPacker.PackFiles([.. filtered]);
 
-        _conversation.AddMessage(ChatRole.System, codeOptions.InstructionBasedCodePrompts[0]);
-        _conversation.AddMessage(ChatRole.User, codeOptions.InstructionBasedCodePrompts[1], new { input = fileContent, instruction, additionalContext });
+        _conversation.AddMessage(ChatRole.System, systemPrompt);
+        _conversation.AddMessage(ChatRole.User, userPrompt, new { input = fileContent, instruction, additionalContext });
 
         await _conversation.CompleteAsync([GetClassImplementation]);
         var answer = await _autoFixLlmAnswer.RetrieveCodeFragment(_conversation, IsCodeOnly, codeOptions.RegeneratePrompt);
