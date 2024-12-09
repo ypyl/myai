@@ -18,7 +18,8 @@ Code:
                 - Call tools to get implementation of custom external classes if required.
 
                 EXAMPLES:
-                Provided code:
+                Code to process:
+                ```csharp
                 using System.Threading;
 
                 namespace FibonacciApp
@@ -30,6 +31,7 @@ Code:
                         // Implement logic that return if the number is even or odd.
                     }
                 }
+                ```
                 Expected output:
                 ```csharp
                 using System;
@@ -47,12 +49,13 @@ Code:
                 ```
             - |
                 {{#additionalContext}}
-                ADDITIONAL CONTEXT:
+                Additional context:
                 {{additionalContext}}
                 {{/additionalContext}}
-                PROVIDED CODE:
-                {{input}}
+                Code to process:
                 ```csharp
+                {{input}}
+                ```
         InstructionBasedCodePrompts:
             - |
                 ROLE AND CONTEXT:
@@ -64,12 +67,12 @@ Code:
                 - Maintain the structure of the code provided and make only the changes directly mentioned in the user instruction.
                 - Ensure that the code is correct and follows best practices.
                 - Return only the full, modified C# code based on the instructions, without your comments.
-                - The output must be a clean, compilable, finalized version of the C# codeю
+                - The output must be a clean, compilable, finalized version of the C# code.
                 - When returning the code, ensure that it is wrapped by '```csharp' and '```' to maintain the formatting.
                 EXAMPLES:
-                User instruction:
                 Rename number variable to userInput.
-                Provided code:
+                Code to process:
+                ```csharp
                 using System.Threading;
 
                 namespace FibonacciApp
@@ -82,6 +85,7 @@ Code:
                         return number % 2 == 0;
                     }
                 }
+                ```
                 Expected output:
                 ```csharp
                 using System;
@@ -98,12 +102,15 @@ Code:
                 }
                 ```
             - |
-                User instruction:
                 {{instruction}}
-                PROVIDED CODE:
-                {{input}}
-                OUTPUT:
+                {{#additionalContext}}
+                Additional context:
+                {{additionalContext}}
+                {{/additionalContext}}
+                Code to process:
                 ```csharp
+                {{input}}
+                ```
         TypesFromCodeCommentsPrompts:
             - |
                 ROLE AND CONTEXT:
@@ -121,8 +128,6 @@ Code:
             - |
                 User input:
                 {{input}}
-                Output:
-                -
         RegeneratePrompt: |
             You must wrap the code by '```csharp' and '```' as it will be extracted and saved to the file. Return only code.
             ```csharp

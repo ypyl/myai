@@ -50,8 +50,15 @@ public class CodeAgent
 
         var fileContent = _directoryPacker.GetFileContent(targetFilePath);
 
+        var typesFromInstruction = ExtractAtWords(instruction);
+        var additionalFileContents = _codeTools.GetExistingPathsOfExternalTypes(allFiles, typesFromInstruction);
+
+        var filtered = additionalFileContents.Distinct();
+
+        var additionalContext = _directoryPacker.PackFiles([.. filtered]);
+
         _conversation.AddMessage(ChatRole.System, codeOptions.InstructionBasedCodePrompts[0]);
-        _conversation.AddMessage(ChatRole.User, codeOptions.InstructionBasedCodePrompts[1], new { input = fileContent, instruction });
+        _conversation.AddMessage(ChatRole.User, codeOptions.InstructionBasedCodePrompts[1], new { input = fileContent, instruction, additionalContext });
 
         await _conversation.CompleteAsync([GetClassImplementation]);
         var answer = await _autoFixLlmAnswer.RetrieveCodeFragment(_conversation, IsCodeOnly, codeOptions.RegeneratePrompt);
@@ -73,5 +80,10 @@ public class CodeAgent
             if (result.Count == 0) return "No implementation found.";
             return _directoryPacker.GetFileContent(result.First());
         }
+    }
+
+    public List<string> ExtractAtWords(string instruction)
+    {
+        return [.. instruction.Split(' ').Where(word => word.StartsWith('@')).Select(word => word.TrimStart('@'))];
     }
 }
