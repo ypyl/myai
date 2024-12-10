@@ -13,7 +13,7 @@ Code:
                 - Return only the full, modified C# code based on the instructions.
                 - Do not include explanations, extra comments, or code outside the specific scope of the instructions.
                 - Ensure the output does not contain code from additional context unless required.
-                - The output must be a clean, compilable, finalized version of the C# code, without any comments.
+                - The output must be a clean, compilable, finalized version of the C# code.
                 - When returning the code, ensure that it is wrapped by '```csharp' and '```' to maintain the formatting.
                 - Call tools to get implementation of custom external classes if required.
 

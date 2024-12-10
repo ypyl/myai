@@ -68,7 +68,7 @@ public class CodeAgent
         _conversation.AddMessage(ChatRole.System, systemPrompt);
         _conversation.AddMessage(ChatRole.User, userPrompt, new { input = fileContent, instruction, additionalContext });
 
-        await _conversation.CompleteAsync([GetClassImplementation]);
+        await _conversation.CompleteAsync([GetSourceCodeByTypeName]);
         var answer = await _autoFixLlmAnswer.RetrieveCodeFragment(_conversation, IsCodeOnly, codeOptions.RegeneratePrompt);
         if (answer is null) return false;
 
@@ -80,8 +80,8 @@ public class CodeAgent
 
         bool IsCodeOnly(string result) => result.StartsWith(codeOptions.Prefix.Trim()) && result.EndsWith(codeOptions.Postfix.Trim());
 
-        [Description("Get the implementation of the class based on its name.")]
-        string GetClassImplementation(string className)
+        [Description("Retrieves the source code of the specified type or class by its name, providing implementation details necessary for accurate code modifications or references.")]
+        string GetSourceCodeByTypeName(string className)
         {
             var cleanedClassName = className.Split(".")[^1].Trim();
             var result = _codeTools.GetExistingPathsOfExternalTypes(allFiles, [cleanedClassName]);
