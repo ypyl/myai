@@ -10,10 +10,13 @@ using MyAi;
 using Azure.AI.OpenAI;
 using Stubble.Core.Builders;
 using Stubble.Core.Interfaces;
+using System.ClientModel;
 
 var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
     .AddYamlFile("appsettings.code.csharp.yml", true)
+    .AddYamlFile("appsettings.model.yml", true)
+    // TODO add environment variables
     .Build();
 
 var serviceCollection = new ServiceCollection();
@@ -41,9 +44,15 @@ var openAILink = Environment.GetEnvironmentVariable("MYAI_URI");
 var openAIKey = Environment.GetEnvironmentVariable("MYAI_KEY");
 var openAIModel = Environment.GetEnvironmentVariable("MYAI_MODEL");
 
+var options = configuration.GetSection("Model").Get<ModelOptions>();
+
+IChatClient client = options != null
+    ? new OpenAIChatClient(new OpenAI.OpenAIClient(new ApiKeyCredential(options.ApiKey), new OpenAI.OpenAIClientOptions { Endpoint = new Uri(options.Endpoint) }), options.ModelId)
+    : new OllamaChatClient(new Uri("http://localhost:11434/"), "llama3.2");
+
 var chatClient = openAILink is not null && openAIKey is not null && openAIModel is not null
     ? new AzureOpenAIClient(new Uri(openAILink), new System.ClientModel.ApiKeyCredential(openAIKey)).AsChatClient(openAIModel)
-    : new OllamaChatClient(new Uri("http://localhost:11434/"), "llama3.2");
+    : client;
 
 serviceCollection.AddChatClient(services =>
     new ChatClientBuilder(chatClient)

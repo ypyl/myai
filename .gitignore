@@ -4,3 +4,4 @@ obj
 nupkg
 logs
 settings.json
+appsettings.model.yml
